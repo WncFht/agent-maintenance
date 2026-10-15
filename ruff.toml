@@ -1,0 +1,40 @@
+target-version = "py310"
+line-length = 88
+extend-exclude = [".agents/notes/archived"]
+
+[lint]
+select = ["ALL"]
+ignore = [
+  # formatter 管理逗号；中文内容允许全角标点。
+  "COM812",
+  "ISC001",
+  "RUF001",
+  "RUF002",
+  "RUF003",
+  # CLI 与测试保留短函数和渐进类型标注，不要求公共库文档格式。
+  "D",
+  "ANN",
+  "CPY001",
+  "T201",
+  # 错误消息集中在命令行输出，不为每个校验条件建立异常子类。
+  "EM",
+  "TRY003",
+  "TRY301",
+  "TRY300",
+  "TRY004",
+  # 配置解析、测试 fixture 允许分支密集和局部魔数。
+  "PLR0912",
+  "PLR0915",
+  "PLR2004",
+  "C901",
+  # 运行命令本身是本工具的职责，参数数组来自显式配置。
+  "S603",
+  "S607",
+  # 脚本由路径执行，不作为 Python 包；布尔参数用于内部检查协议。
+  "INP001",
+  "FBT001",
+  "FBT002",
+]
+
+[lint.per-file-ignores]
+"scripts/tests/*.py" = ["S101", "SLF001", "PT009", "PT027", "ARG002"]

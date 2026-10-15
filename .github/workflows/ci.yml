@@ -1,0 +1,52 @@
+name: Maintenance
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: maintenance-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    strategy:
+      matrix:
+        python: ["3.10", "3.13"]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - run: python -m pip install -r requirements-dev.txt
+      - run: npm ci
+      - run: brew install autocorrect gitleaks
+      - run: python scripts/run_checks.py --config scripts/checks.json --mode ci
+      - run: gitleaks dir . --redact --no-banner
+  archive-history:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - name: Verify archives using the target branch checker
+        env:
+          TARGET_BASE: ${{ github.event.pull_request.base.sha }}
+        run: |
+          policy_dir=$(mktemp -d)
+          git show "$TARGET_BASE:scripts/notes_guard.py" > "$policy_dir/notes_guard.py"
+          git show "$TARGET_BASE:scripts/check_archive.py" > "$policy_dir/check_archive.py"
+          python "$policy_dir/check_archive.py" --root "$GITHUB_WORKSPACE" --base "$TARGET_BASE"

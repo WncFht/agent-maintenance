@@ -1,0 +1,3 @@
+interface:
+  display_name: "维护决策记录"
+  short_description: "创建、审阅、合并、修剪或封存 Agent Notes 时使用；按未来决策价值维护理由与替代方案。"

@@ -1,0 +1,59 @@
+default_install_hook_types: [pre-commit, pre-push]
+default_stages: [pre-commit]
+repos:
+  - repo: local
+    hooks:
+      - id: markdownlint
+        name: Markdown lint
+        entry: node_modules/.bin/markdownlint-cli2 --fix
+        language: system
+        types: [markdown]
+        exclude: ^\.agents/notes/archived/
+      - id: prose-format
+        name: Format staged Markdown
+        entry: node_modules/.bin/git-format-staged --formatter "autocorrect --stdin | node_modules/.bin/prettier --stdin-filepath {}"
+        language: system
+        types: [markdown]
+        exclude: ^\.agents/notes/archived/
+      - id: config-format
+        name: Format staged configuration
+        entry: node_modules/.bin/git-format-staged --formatter "node_modules/.bin/prettier --stdin-filepath {}"
+        language: system
+        types_or: [yaml, json]
+        exclude: ^package-lock\.json$
+      - id: python-format
+        name: Format staged Python
+        entry: node_modules/.bin/git-format-staged --formatter "ruff format -"
+        language: system
+        types: [python]
+      - id: python-lint
+        name: Python lint
+        entry: ruff check
+        language: system
+        types: [python]
+      - id: yaml-comments
+        name: YAML comment width
+        entry: python3 scripts/check-yaml-comments.py
+        language: system
+        types: [yaml]
+      - id: staged-contracts
+        name: Staged document and note contracts
+        entry: python3 scripts/staged_checks.py
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+      - id: secrets
+        name: Staged secrets
+        entry: gitleaks git --pre-commit --staged --redact --no-banner
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-commit]
+      - id: maintenance
+        name: Maintenance checks before push
+        entry: python3 scripts/run_checks.py --config scripts/checks.json --mode ci
+        language: system
+        pass_filenames: false
+        always_run: true
+        stages: [pre-push]

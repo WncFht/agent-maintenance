@@ -1,0 +1,3 @@
+interface:
+  display_name: "维护文字与注释"
+  short_description: "编写、审阅、补全或精简文档、JSDoc、注释、提示词和诊断文字时使用；保留完整行为语义。"

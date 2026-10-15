@@ -1,0 +1,93 @@
+{
+  "version": 1,
+  "checks": [
+    {
+      "id": "note-format",
+      "command": ["python3", "scripts/notes_guard.py", "--root", "."],
+      "modes": ["docs", "ci"],
+      "needs": [],
+      "timeout": 60,
+      "allow_failure": false
+    },
+    {
+      "id": "docs",
+      "command": ["python3", "scripts/check_docs.py"],
+      "modes": ["docs", "ci"],
+      "needs": [],
+      "timeout": 60,
+      "allow_failure": false
+    },
+    {
+      "id": "archive-history",
+      "command": ["python3", "scripts/check_archive.py"],
+      "modes": ["docs", "ci"],
+      "needs": ["note-format"],
+      "timeout": 60,
+      "allow_failure": false
+    },
+    {
+      "id": "tests",
+      "command": [
+        "python3",
+        "-m",
+        "unittest",
+        "discover",
+        "-s",
+        "scripts/tests",
+        "-v"
+      ],
+      "modes": ["test", "ci"],
+      "needs": [],
+      "timeout": 120,
+      "allow_failure": false
+    },
+    {
+      "id": "python-lint",
+      "command": ["ruff", "check", "."],
+      "modes": ["lint", "ci"],
+      "needs": [],
+      "timeout": 60,
+      "allow_failure": false
+    },
+    {
+      "id": "python-format",
+      "command": ["ruff", "format", "--check", "."],
+      "modes": ["lint", "ci"],
+      "needs": [],
+      "timeout": 60,
+      "allow_failure": false
+    },
+    {
+      "id": "format",
+      "command": ["npm", "run", "format:check"],
+      "modes": ["lint", "ci"],
+      "needs": [],
+      "timeout": 60,
+      "allow_failure": false
+    },
+    {
+      "id": "markdown-lint",
+      "command": ["npm", "run", "lint:md"],
+      "modes": ["lint", "ci"],
+      "needs": [],
+      "timeout": 60,
+      "allow_failure": false
+    },
+    {
+      "id": "chinese-spacing",
+      "command": ["python3", "scripts/check_spacing.py"],
+      "modes": ["lint", "ci"],
+      "needs": [],
+      "timeout": 60,
+      "allow_failure": false
+    },
+    {
+      "id": "yaml-comments",
+      "command": ["python3", "scripts/check-yaml-comments.py"],
+      "modes": ["lint", "ci"],
+      "needs": [],
+      "timeout": 60,
+      "allow_failure": false
+    }
+  ]
+}

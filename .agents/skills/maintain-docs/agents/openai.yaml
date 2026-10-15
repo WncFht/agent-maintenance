@@ -1,0 +1,3 @@
+interface:
+  display_name: "维护文档"
+  short_description: "编写、重组或审计 README、教程与参考文档时使用；核对读者、事实归属、操作证据和生成来源。"

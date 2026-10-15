@@ -1,0 +1,10 @@
+node_modules/
+.venv/
+__pycache__/
+.ruff_cache/
+.claude/
+.crossnote/
+.env
+.env.*
+!.env.example
+.DS_Store
