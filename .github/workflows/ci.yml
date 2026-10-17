@@ -19,6 +19,8 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@4790763c0a3ba4036f72634dc079c4a7dfcd4878
       - uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python }}
@@ -29,7 +31,16 @@ jobs:
       - run: python -m pip install --require-hashes -r requirements-dev.lock
       - run: npm ci
       - run: npx playwright install --with-deps chromium
-      - run: brew install autocorrect gitleaks taplo actionlint shfmt shellcheck zsh
+      - name: Install system tools
+        run: |
+          brew install autocorrect gitleaks taplo actionlint shfmt shellcheck zsh
+          autocorrect --version
+          gitleaks version
+          taplo --version
+          actionlint --version
+          shfmt --version
+          shellcheck --version
+          zsh --version
       - run: python scripts/run_checks.py --config scripts/checks.json --mode ci
       - run: gitleaks dir . --redact --no-banner
   archive-history:
