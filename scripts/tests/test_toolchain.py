@@ -305,6 +305,14 @@ class ToolchainTests(unittest.TestCase):
         self.assertIn("value = 1", self.git("show", "HEAD:source.py").stdout)
         self.assertIn("value = 1", self.git("show", "HEAD:config.toml").stdout)
         self.assertEqual(self.scan().returncode, 0)
+        workflow = self.root / ".github/workflows/ci.yml"
+        workflow.write_text(
+            workflow.read_text().replace("ubuntu-latest", "invalid-runner")
+        )
+        self.git("add", ".github/workflows/ci.yml")
+        rejected = self.git("commit", "-qm", "invalid workflow", check=False)
+        self.assertNotEqual(rejected.returncode, 0)
+        self.assertIn("actions", rejected.stdout + rejected.stderr)
 
     def test_real_commit_preserves_partial_staging_and_rejects_staged_error(self):
         """Actual pre-commit hides unstaged fixes and preserves unstaged additions."""
@@ -363,6 +371,13 @@ class ToolchainTests(unittest.TestCase):
         self.assertNotEqual(rejected.returncode, 0)
         self.assertEqual(code.read_text(), fixed)
         self.assertIn(bad, self.git("show", ":source.py").stdout)
+        invalid = "value = (\n"
+        code.write_text(invalid)
+        self.git("add", "source.py")
+        failed_format = self.git("commit", "-qm", "invalid syntax", check=False)
+        self.assertNotEqual(failed_format.returncode, 0)
+        self.assertEqual(code.read_text(), invalid)
+        self.assertEqual(self.git("show", ":source.py").stdout, invalid)
 
     def test_format_conflict_is_reported_without_losing_worktree(self):
         """A formatter merge conflict reports a warning and retains the user's edit."""
