@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import shutil
 import subprocess
-import sys
 from pathlib import Path
 
 from install_hooks import install
@@ -36,18 +35,7 @@ def main() -> None:
         link.parent.mkdir(exist_ok=True)
         link.symlink_to("../.agents/skills", target_is_directory=True)
     install(root)
-    subprocess.run(
-        [
-            sys.executable,
-            "-m",
-            "pre_commit",
-            "install",
-            "--hook-type",
-            "pre-push",
-        ],
-        cwd=root,
-        check=True,
-    )
+    install(root, "pre-push")
 
 
 if __name__ == "__main__":

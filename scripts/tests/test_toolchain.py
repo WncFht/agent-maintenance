@@ -3,6 +3,7 @@
 import json
 import os
 import runpy
+import shlex
 import shutil
 import subprocess
 import sys
@@ -244,6 +245,79 @@ class ToolchainTests(unittest.TestCase):
         self.git("config", "core.hooksPath", ".hooks")
         with self.assertRaisesRegex(SystemExit, "core.hooksPath"):
             hooks.install(self.root)
+
+    def test_commit_and_push_use_installed_environment_without_activation(self):
+        """Prefer installed Python over PATH and keep failing push checks blocking."""
+        config = {
+            "repos": [
+                {
+                    "repo": "local",
+                    "hooks": [
+                        {
+                            "id": "environment",
+                            "name": "environment",
+                            "language": "system",
+                            "entry": "python3 -c "
+                            + shlex.quote(
+                                "import identify, markdown_it; "
+                                "from pathlib import Path; "
+                                "raise SystemExit(int(Path('reject-push').exists()))"
+                            ),
+                            "stages": ["pre-commit", "pre-push"],
+                            "always_run": True,
+                            "pass_filenames": False,
+                        }
+                    ],
+                }
+            ]
+        }
+        (self.root / ".pre-commit-config.yaml").write_text(json.dumps(config))
+        self.git("add", ".")
+        self.git("commit", "-qm", "baseline")
+        poison = self.root / "poison-bin"
+        poison.mkdir()
+        python = poison / "python3"
+        python.write_text("#!/bin/sh\nexit 42\n")
+        python.chmod(0o755)
+        environment = {
+            **os.environ,
+            "PATH": f"{poison}{os.pathsep}{os.environ['PATH']}",
+        }
+        hooks.install(self.root)
+        hooks.install(self.root, "pre-push")
+        hooks.install(self.root, "pre-push")
+        (self.root / "source.py").write_text("value = 1\n")
+        self.git("add", "source.py")
+        committed = subprocess.run(
+            ["git", "commit", "-qm", "without activation"],
+            cwd=self.root,
+            env=environment,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        self.assertEqual(committed.returncode, 0, committed.stdout + committed.stderr)
+        remote = self.root / "remote.git"
+        self.git("init", "--bare", "-q", str(remote))
+        command = ["git", "push", str(remote), "HEAD:refs/heads/main"]
+        pushed = subprocess.run(
+            command, cwd=self.root, env=environment, capture_output=True, check=False
+        )
+        self.assertEqual(pushed.returncode, 0, pushed.stdout + pushed.stderr)
+        self.git("commit", "--allow-empty", "-qm", "next push")
+        (self.root / "reject-push").touch()
+        rejected = subprocess.run(
+            command, cwd=self.root, env=environment, capture_output=True, check=False
+        )
+        self.assertNotEqual(rejected.returncode, 0)
+        local_head = self.git("rev-parse", "HEAD").stdout.strip()
+        remote_head = self.git("ls-remote", str(remote), "refs/heads/main").stdout
+        self.assertNotIn(local_head, remote_head)
+        push_hook = self.root / ".git/hooks/pre-push"
+        push_hook.write_text("#!/bin/sh\n# user hook\n")
+        with self.assertRaisesRegex(SystemExit, "foreign hook"):
+            hooks.install(self.root, "pre-push")
+        self.assertEqual(push_hook.read_text(), "#!/bin/sh\n# user hook\n")
 
     def test_fresh_repository_adopts_language_recipes(self):
         """Use the published format hooks in a new repository with real tools."""

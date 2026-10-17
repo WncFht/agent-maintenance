@@ -41,6 +41,8 @@ npm 工具使用精确版本与 package-lock，安装用 npm ci；Python 使用�
 
 `python scripts/setup.py` 安装两阶段 hook。第一阶段直接运行配置中 manual 阶段的本地 git-format-staged 条目，格式化 index 并尝试合并工作区；第二阶段执行 pre-commit 检查。manual 阶段专用于这些 formatter，其他命令放检查阶段。entry 使用参数数组，formatter 内的 shell 管道由脚本启用 pipefail。
 
+安装时使用已装齐锁定依赖的项目 Python，例如 `.venv/bin/python scripts/setup.py`。commit 和 push hook 将该 Python 所在目录放到 PATH 最前，使检查及其子进程复用项目依赖，之后无需激活虚拟环境。虚拟环境删除或移动后须重建依赖并重装 hook；hook 安装器更新后也须重装，避免继续执行旧入口。
+
 pre-commit 隐藏未暂存差异，并按原 index 恢复补丁。在此期间改写 index 会破坏恢复条件，因此格式化必须在框架外先执行。不要用普通 pre-commit install 覆盖两阶段入口；已有 hooksPath 或外来 hook 时安装拒绝覆盖，维护者需把两阶段顺序接入原入口。
 
 git-format-staged 合并冲突会报告 warning，保留工作区原文，index 可能已格式化；审阅 git diff 和 git diff --cached 后处理。Markdownlint 原地修复后可能要求重新暂存。新仓先执行完整检查、建立初始化提交，再安装依赖 HEAD 的 formatter。
