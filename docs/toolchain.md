@@ -1,6 +1,6 @@
 # 工具链采用与维护
 
-本指南面向已有 Git 仓库的维护者。agent-maintenance 提供检查实现、配置模板与采用方法，项目保留自己的 Make、构建工具、依赖管理和产品测试。工具链从本指南进入，无需额外安装 setup-toolchain skill。
+本指南面向已有 Git 仓库的维护者。agent-maintenance 提供检查实现、配置模板与采用方法，把重复的格式和静态检查交给工具，减少 Agent 与维护者逐项核对的成本。项目保留自己的 Make、构建工具、依赖管理和产品测试。
 
 ## 工具职责与扫描范围
 
@@ -55,7 +55,7 @@ git-format-staged 合并冲突会报告 warning，保留工作区原文，index 
 
 CI 调用项目已有完整入口，与本地复用叶子检查。workflow 文件不证明远端 required checks 已启用；部署、发布和远端权限按目标授权单独处理。
 
-## 可选 MPE 预览与旧入口迁移
+## 可选 MPE 预览
 
 assets/.crossnote 保留预览资源、测试、vendored 许可证和校验和，退出通用格式化，用自身生成与测试入口验证。复制 scripts/crossnote-links.sh 到目标 scripts，忽略根 .crossnote 后运行：
 
@@ -65,8 +65,6 @@ npm run test:preview
 node assets/.crossnote/scripts/build-parser.cjs --check
 ```
 
-默认源为 ~/src/agent-maintenance/assets/.crossnote，CROSSNOTE_SRC 可覆盖。配置与目录使用软链，两个注入脚本使用硬链以满足 MPE 的工作区真实路径检查，目标与资源必须同文件系统。原子保存会改变源 inode，更新后重跑链接脚本；实体定制拒绝覆盖。全局 style 链仅诊断，迁移时显式修复。
+默认源为 ~/src/agent-maintenance/assets/.crossnote，CROSSNOTE_SRC 可覆盖。配置与目录使用软链，两个注入脚本使用硬链以满足 MPE 的工作区真实路径检查，目标与资源必须同文件系统。原子保存会改变源 inode，更新后重跑链接脚本；实体定制拒绝覆盖。脚本只诊断全局 style 链的状态；需要全局主题时，由维护者显式配置。
 
 工作区需要 MPE、信任工作区并允许预览脚本；KaTeX、none.css、systemColorScheme 参考编辑器配置。Playwright 与 QuickJS 属于锁定的 npm 开发依赖；没有本机 Chrome 时先运行 `npx playwright install chromium`，Linux CI 使用 `--with-deps` 安装浏览器依赖。测试覆盖生成段、解析器、运行时与主题；跳过项须单独报告。浏览器测试不等于 VS Code 扩展或导出 PDF 的视觉验收。
-
-旧 setup-toolchain 使用者先迁移默认路径、软链、硬链和全局 style，确认无旧路径消费者后将旧 skill 移出发现目录并保留恢复副本。恢复时先恢复资源与链接，再恢复 skill 入口。

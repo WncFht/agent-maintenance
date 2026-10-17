@@ -32,4 +32,4 @@ node --test .crossnote/tests/*.test.cjs               # full suite
 
 Fence info options: `numbered` / `linenum`, `noend`, `scopelines`,
 `title=前缀`, `indent=1.5em` (em only), `linepunc=.`, `commentdelim=▷`.
-Adoption, link ownership and migration are documented in [the toolchain guide](../../docs/toolchain.md).
+Setup, link ownership and validation are documented in [the toolchain guide](../../docs/toolchain.md).
