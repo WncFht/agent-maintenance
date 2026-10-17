@@ -1,0 +1,4 @@
+context:
+  codeblock: 0
+fileTypes:
+  "*.command": shell

@@ -3,4 +3,4 @@
 node_modules
 .claude
 .agents/notes/archived/**
-package-lock.json
+assets/.crossnote/

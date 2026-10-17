@@ -1,0 +1,23 @@
+{
+  "prettier.prettierPath": "./node_modules/prettier",
+  "autocorrect.enable": true,
+  "autocorrect.enableLint": true,
+  "autocorrect.formatOnSave": false,
+  "[python]": {
+    "editor.defaultFormatter": "charliermarsh.ruff",
+    "editor.formatOnSave": true
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "markdown-preview-enhanced.enablePreviewScripts": true,
+  "markdown-preview-enhanced.enableScriptExecution": true,
+  "markdown-preview-enhanced.mathRenderingOption": "KaTeX",
+  "markdown-preview-enhanced.previewTheme": "none.css",
+  "markdown-preview-enhanced.previewColorScheme": "systemColorScheme"
+}

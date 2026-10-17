@@ -3,7 +3,7 @@ node_modules/
 __pycache__/
 .ruff_cache/
 .claude/
-.crossnote/
+/.crossnote/
 .env
 .env.*
 !.env.example

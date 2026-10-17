@@ -10,19 +10,19 @@
 | [maintain-prose](.agents/skills/maintain-prose/SKILL.md)                   | 文字与注释的完整语义、会话残留清理     |
 | [maintain-decision-notes](.agents/skills/maintain-decision-notes/SKILL.md) | 决策记录、取代、合并和冻结历史         |
 
-共享参考仅保留文档分工、文字案例、会话残留、决策记录、升级指南与自动化说明。通用代码审阅、验证选择及其专项参考不在本包范围内。最终清单和各自用途见[来源与取舍](来源与取舍.md)。
+共享参考保留文档、文字与决策维护方法。[工具链指南](docs/toolchain.md)提供 format、lint、暂存门控、CI 和可选 MPE 的采用方法，替代独立 setup-toolchain skill。通用代码审阅和产品测试策略不在本包范围内。来源和许可见[来源与取舍](来源与取舍.md)。
 
 `AGENTS.md` 与 `.agents/` 为规则事实源。docs、scripts、.github 与 Notes 的分层入口表达不同区域的职责；不预设产品源码或基准目录。采用时只选择目标项目存在的区域，并修复相对链接。
 
 ## 本地准备
 
-需要 Python 3.10+、Node 22+ 和 Git。Python 依赖钉在 `requirements-dev.txt`，npm 工具钉在 `package.json` 与锁文件。系统工具使用已有包管理器；本机有 Homebrew 时执行：
+需要 Python 3.10+、Node 22+ 和 Git。Python 直接依赖钉在 `requirements-dev.txt`，传递依赖与哈希归 `requirements-dev.lock`，npm 工具归 `package.json` 与锁文件。系统工具使用已有包管理器；本机有 Homebrew 时执行：
 
 ```sh
-brew install autocorrect gitleaks
+brew install autocorrect gitleaks taplo actionlint shfmt shellcheck zsh
 python3 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements-dev.txt
+python -m pip install --require-hashes -r requirements-dev.lock
 npm ci
 python scripts/setup.py
 ```
@@ -39,7 +39,7 @@ python scripts/run_checks.py --config scripts/checks.json --mode ci
 
 docs 检查本地文件链接、技能结构、Notes 格式和归档历史；test 运行行为测试；ci 增加格式、lint、中文间距和 YAML 注释检查。直接运行历史检查默认以本地 HEAD 为基线；CI 从 PR base 或 push before 获取基线。详细执行关系见[维护流程](docs/pipeline.md)。
 
-格式整理使用 `npm run format`、`ruff format .` 与 `python scripts/check_spacing.py --fix`。这些入口跳过冻结历史。提交时 Markdown 原地修复可能要求重新暂存，其他 formatter 经 git-format-staged 处理暂存内容。契约检查对 index 快照执行，不把未暂存修复当作通过证据。
+格式整理使用 `npm run format`、`ruff format .`、`taplo fmt` 与 `python scripts/check_spacing.py --fix`，最后一项只修 Markdown。检查覆盖代码注释和字符串，排除冻结历史与可选预览载荷。setup 安装两阶段入口，先直接格式化 index，再由 pre-commit 检查。契约检查使用 index 快照；部分暂存与冲突处理见[工具链指南](docs/toolchain.md)。
 
 ## 在其他项目采用
 

@@ -19,4 +19,6 @@
 
 本仓的使用与验证入口见 [README](README.md)，流水线边界见[维护流程](docs/pipeline.md)。向其他项目迁移时保留真实存在的目录入口，复用已有检查；本仓检查不代表目标产品已验证。
 
+format、lint、hooks、CI 和可选 MPE 的接入从[工具链指南](docs/toolchain.md)进入。setup 安装两阶段 hook，暂存格式化在框架隐藏未暂存改动之前运行；不要用普通 pre-commit install 覆盖该入口。
+
 `AGENTS.md` 与 `.agents/` 是入库事实源，`.claude/skills` 由 `python3 scripts/setup.py` 创建并忽略。日常检查使用 `python3 scripts/run_checks.py --config scripts/checks.json --mode ci`；提交前 hook 验证暂存快照，不把工作区未暂存内容当作提交证据。

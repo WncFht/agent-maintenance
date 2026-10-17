@@ -7,6 +7,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+from install_hooks import install
+
 
 def main() -> None:
     root = Path(__file__).resolve().parents[1]
@@ -33,14 +35,13 @@ def main() -> None:
     else:
         link.parent.mkdir(exist_ok=True)
         link.symlink_to("../.agents/skills", target_is_directory=True)
+    install(root)
     subprocess.run(
         [
             sys.executable,
             "-m",
             "pre_commit",
             "install",
-            "--hook-type",
-            "pre-commit",
             "--hook-type",
             "pre-push",
         ],

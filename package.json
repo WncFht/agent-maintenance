@@ -2,10 +2,11 @@
   "name": "agent-maintenance",
   "private": true,
   "scripts": {
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "format": "prettier --write \"**/*.{md,yaml,yml,json,jsonc}\"",
+    "format:check": "prettier --check \"**/*.{md,yaml,yml,json,jsonc}\"",
     "lint:md": "markdownlint-cli2 '**/*.md'",
-    "check": "python3 scripts/run_checks.py --config scripts/checks.json --mode ci"
+    "check": "python3 scripts/run_checks.py --config scripts/checks.json --mode ci",
+    "test:preview": "node --test assets/.crossnote/tests/*.test.cjs"
   },
   "overrides": {
     "katex": "0.19.0",
@@ -14,6 +15,8 @@
   "devDependencies": {
     "git-format-staged": "4.0.2",
     "markdownlint-cli2": "0.23.3",
-    "prettier": "3.9.6"
+    "playwright": "1.64.1",
+    "prettier": "3.9.6",
+    "quickjs-emscripten": "0.32.0"
   }
 }

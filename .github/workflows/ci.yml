@@ -26,9 +26,10 @@ jobs:
         with:
           node-version: "22"
           cache: npm
-      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m pip install --require-hashes -r requirements-dev.lock
       - run: npm ci
-      - run: brew install autocorrect gitleaks
+      - run: npx playwright install --with-deps chromium
+      - run: brew install autocorrect gitleaks taplo actionlint shfmt shellcheck zsh
       - run: python scripts/run_checks.py --config scripts/checks.json --mode ci
       - run: gitleaks dir . --redact --no-banner
   archive-history:

@@ -11,6 +11,8 @@
         "node_modules/**",
         ".venv/**",
         ".claude/**",
+        ".crossnote/**",
         ".agents/notes/archived/**",
+        "assets/.crossnote/**",
     ],
 }

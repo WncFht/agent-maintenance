@@ -1,5 +1,6 @@
 default_install_hook_types: [pre-commit, pre-push]
 default_stages: [pre-commit]
+exclude: ^assets/\.crossnote/
 repos:
   - repo: local
     hooks:
@@ -10,20 +11,22 @@ repos:
         types: [markdown]
         exclude: ^\.agents/notes/archived/
       - id: prose-format
+        stages: [manual]
         name: Format staged Markdown
-        entry: node_modules/.bin/git-format-staged --formatter "autocorrect --stdin | node_modules/.bin/prettier --stdin-filepath {}"
+        entry: node_modules/.bin/git-format-staged --formatter "bash scripts/fmt-markdown.sh {}"
         language: system
         types: [markdown]
         exclude: ^\.agents/notes/archived/
       - id: config-format
+        stages: [manual]
         name: Format staged configuration
         entry: node_modules/.bin/git-format-staged --formatter "node_modules/.bin/prettier --stdin-filepath {}"
         language: system
-        types_or: [yaml, json]
-        exclude: ^package-lock\.json$
+        files: '\.(yaml|yml|json|jsonc)$|^\.prettierrc$'
       - id: python-format
+        stages: [manual]
         name: Format staged Python
-        entry: node_modules/.bin/git-format-staged --formatter "ruff format -"
+        entry: node_modules/.bin/git-format-staged --formatter "ruff format --stdin-filename {} -"
         language: system
         types: [python]
       - id: python-lint
@@ -31,6 +34,34 @@ repos:
         entry: ruff check
         language: system
         types: [python]
+      - id: spacing
+        name: AutoCorrect prose and code (check only)
+        entry: python3 scripts/check_spacing.py
+        language: system
+        pass_filenames: false
+        always_run: true
+      - id: toml-format
+        name: Format staged TOML
+        entry: node_modules/.bin/git-format-staged --formatter "taplo fmt --stdin-filepath {} -"
+        language: system
+        types: [toml]
+        stages: [manual]
+      - id: shell-format
+        name: Format staged shell
+        entry: node_modules/.bin/git-format-staged --formatter "bash scripts/fmt-shell.sh"
+        language: system
+        types: [shell]
+        stages: [manual]
+      - id: shell-lint
+        name: Shell syntax and static rules
+        entry: python3 scripts/check_shell.py
+        language: system
+        types: [shell]
+      - id: actions
+        name: GitHub Actions validation
+        entry: actionlint
+        language: system
+        files: ^\.github/workflows/.*\.(yml|yaml)$
       - id: yaml-comments
         name: YAML comment width
         entry: python3 scripts/check-yaml-comments.py

@@ -88,6 +88,38 @@
       "needs": [],
       "timeout": 60,
       "allow_failure": false
+    },
+    {
+      "id": "shell",
+      "command": ["python3", "scripts/check_shell.py"],
+      "modes": ["lint", "ci"],
+      "needs": [],
+      "timeout": 120,
+      "allow_failure": false
+    },
+    {
+      "id": "toml",
+      "command": ["taplo", "fmt", "--check"],
+      "modes": ["lint", "ci"],
+      "needs": [],
+      "timeout": 120,
+      "allow_failure": false
+    },
+    {
+      "id": "actions",
+      "command": ["actionlint"],
+      "modes": ["lint", "ci"],
+      "needs": [],
+      "timeout": 120,
+      "allow_failure": false
+    },
+    {
+      "id": "preview",
+      "command": ["npm", "run", "test:preview"],
+      "modes": ["test", "ci"],
+      "needs": [],
+      "timeout": 120,
+      "allow_failure": false
     }
   ]
 }

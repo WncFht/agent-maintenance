@@ -14,7 +14,15 @@ SKILLS = {
     "maintain-prose",
     "maintain-decision-notes",
 }
-IGNORED = {".git", ".venv", "node_modules", "__pycache__", ".ruff_cache", ".claude"}
+IGNORED = {
+    ".git",
+    ".venv",
+    "node_modules",
+    "__pycache__",
+    ".ruff_cache",
+    ".claude",
+    ".crossnote",
+}
 
 
 def check(root: Path) -> list[str]:
@@ -55,6 +63,8 @@ def check(root: Path) -> list[str]:
     links = 0
     for path in sorted(root.rglob("*.md")):
         relative = path.relative_to(root)
+        if relative.parts[:2] == ("assets", ".crossnote"):
+            continue
         if set(relative.parts) & IGNORED or relative.parts[:3] == (
             ".agents",
             "notes",

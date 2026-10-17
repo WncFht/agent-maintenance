@@ -11,7 +11,7 @@
 
 本仓规模小，pre-push 运行完整维护检查。迁移到大项目时由实际变更选择局部证据，CI 保留完整验证。
 
-pre-commit 框架保护部分暂存的工作区差异，git-format-staged 负责格式化 index。staged_checks 通过 checkout-index 导出隔离快照，验证该快照，再对照 HEAD 的归档清单；不修改工作区。
+setup 安装两阶段入口：先在 pre-commit 框架外直接执行 git-format-staged，再让框架保护未暂存差异并检查。格式化冲突报告 warning 并保留工作区原文；不得在框架隐藏改动期间改写 index。staged_checks 通过 checkout-index 导出隔离快照，对照 HEAD 验证归档；不修改工作区。接入和恢复见[工具链指南](toolchain.md)。
 
 ## 调度语义
 
