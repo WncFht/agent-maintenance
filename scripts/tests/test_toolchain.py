@@ -1,6 +1,7 @@
 """Exercise discovery, failure propagation and staged formatting in Git fixtures."""
 
 import json
+import os
 import runpy
 import shutil
 import subprocess
@@ -122,6 +123,51 @@ class ToolchainTests(unittest.TestCase):
             check=False,
         )
         self.assertEqual(result.returncode, 7)
+
+    def test_preview_links_preserve_customizations_and_support_source_override(self):
+        """Build real soft/hard links and refuse an owned configuration file."""
+        scripts = self.root / "scripts"
+        scripts.mkdir()
+        script = scripts / "crossnote-links.sh"
+        shutil.copyfile(ROOT / "scripts/crossnote-links.sh", script)
+        source = ROOT / "assets/.crossnote"
+        environment = {**os.environ, "CROSSNOTE_SRC": str(source)}
+        command = ["bash", str(script)]
+        for _ in range(2):
+            result = subprocess.run(
+                command, env=environment, capture_output=True, check=False
+            )
+            self.assertEqual(result.returncode, 0, result.stderr)
+        for name in (
+            "parser.js",
+            "style.less",
+            "config.js",
+            "head.html",
+            "README.md",
+            "scripts",
+            "tests",
+            "vendor",
+        ):
+            link = self.root / ".crossnote" / name
+            self.assertTrue(link.is_symlink())
+            self.assertTrue(link.samefile(source / name))
+        for name in ("pseudocode-runtime.js", "theme-toggle.js"):
+            link = self.root / ".crossnote" / name
+            self.assertFalse(link.is_symlink())
+            self.assertTrue(link.samefile(source / name))
+        custom = self.root / ".crossnote/parser.js"
+        custom.unlink()
+        custom.write_text("// user configuration\n")
+        rejected = subprocess.run(
+            command, env=environment, capture_output=True, check=False
+        )
+        self.assertNotEqual(rejected.returncode, 0)
+        self.assertEqual(custom.read_text(), "// user configuration\n")
+        environment["CROSSNOTE_SRC"] = str(self.root / "missing")
+        missing = subprocess.run(
+            command, env=environment, capture_output=True, check=False
+        )
+        self.assertNotEqual(missing.returncode, 0)
 
     def test_shell_failure_is_not_hidden_by_a_later_valid_file(self):
         """Hidden shell inputs are checked and the first failure remains nonzero."""
