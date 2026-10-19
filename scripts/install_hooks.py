@@ -1,6 +1,7 @@
 """Separate staged formatting from pre-commit's unstaged-change handling."""
 
 import argparse
+import os
 import re
 import shlex
 import subprocess
@@ -114,13 +115,30 @@ def install(root, hook_type="pre-commit"):
         if hook_type == "pre-commit"
         else ""
     )
+    delegate_command = f'exec {shlex.quote(str(delegate))} "$@"\n'
+    if hook_type == "pre-push":
+        delegate_command = (
+            f"exec {python} {shlex.quote(str(Path(__file__).resolve()))} "
+            f'--run-push-checks {shlex.quote(str(delegate))} "$@"\n'
+        )
     hook.write_text(
         "#!/bin/sh\n# agent-maintenance managed hook\nset -eu\n"
         f'export PATH={shlex.quote(str(Path(sys.executable).parent))}:"$PATH"\n'
         f"{format_command}"
-        f'exec {shlex.quote(str(delegate))} "$@"\n'
+        f"{delegate_command}"
     )
     hook.chmod(0o755)
+
+
+def run_push_checks(root, command):
+    """Detach nested test repositories from Git's invoking hook environment."""
+    local_variables = subprocess.check_output(
+        ["git", "rev-parse", "--local-env-vars"], cwd=root, text=True
+    ).splitlines()
+    environment = {
+        key: value for key, value in os.environ.items() if key not in local_variables
+    }
+    return subprocess.run(command, cwd=root, env=environment, check=False).returncode
 
 
 def main():
@@ -128,7 +146,12 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=Path.cwd())
     parser.add_argument("--format-staged", action="store_true")
+    parser.add_argument("--run-push-checks", nargs=argparse.REMAINDER)
     args = parser.parse_args()
+    if args.run_push_checks is not None:
+        if not args.run_push_checks:
+            parser.error("--run-push-checks requires a delegate command")
+        return run_push_checks(args.root.resolve(), args.run_push_checks)
     if args.format_staged:
         format_staged(args.root.resolve())
     else:

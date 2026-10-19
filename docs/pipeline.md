@@ -40,3 +40,7 @@ PR 中，checks 使用事件 base；archive-history 另从目标分支读取 not
 ## 篇幅与内容归属
 
 同一 docs 检查读取 `scripts/doc-policy.json`，硬上限失败，软预算只提示；暂存检查读取 index 导出后的清单与正文。计数与边界见[篇幅规则](../.agents/references/document-budgets.md)。内容流转见[开发工作流](workflow.md)，不实现重复检测。
+
+## 推送环境隔离
+
+Git 的 pre-push 环境可能绑定调用仓库的 GIT_DIR、GIT_INDEX_FILE 等变量。受管推送入口在运行检查前移除 `git rev-parse --local-env-vars` 列出的绑定，使检查中的临时仓库独立解析自己的 Git 状态；失败仍阻断推送。pre-commit 保留调用者 index，因为它就是待验证的提交内容。安装更新后的入口需重新运行 setup。
