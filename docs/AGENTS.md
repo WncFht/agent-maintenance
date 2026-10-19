@@ -12,3 +12,5 @@
 - 预算只用于常驻入口和实际超大的检索单元；先归位、压缩重复，再按证据调整预算。中文不照搬英文词数。
 
 Agent Notes 不套普通文档章节，遵循[记录规则](../.agents/notes/README.md)。
+
+本仓布局：README 负责采用入口，`docs/toolchain.md` 负责工具接入，`docs/pipeline.md` 负责检查执行，`docs/workflow.md` 负责开发中的文档交付；通用规则由 `.agents/references/` 维护。主导航见 [README](README.md)。篇幅清单为 `scripts/doc-policy.json`，只做上限与提示，不做重复检测。

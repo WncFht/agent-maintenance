@@ -131,7 +131,9 @@ class ToolchainTests(unittest.TestCase):
         scripts.mkdir()
         script = scripts / "crossnote-links.sh"
         shutil.copyfile(ROOT / "scripts/crossnote-links.sh", script)
-        source = ROOT / "assets/.crossnote"
+        source = self.root / "preview-source"
+        # Hard-link behavior requires a source on the fixture filesystem.
+        shutil.copytree(ROOT / "assets/.crossnote", source)
         environment = {**os.environ, "CROSSNOTE_SRC": str(source)}
         command = ["bash", str(script)]
         for _ in range(2):

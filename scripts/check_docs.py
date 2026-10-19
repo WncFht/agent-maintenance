@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import argparse
 from pathlib import Path
-from urllib.parse import unquote, urlsplit
 
 import yaml
+from doc_checks import check_budgets, check_link, markdown_links
 from markdown_it import MarkdownIt
 
 SKILLS = {
@@ -61,6 +61,8 @@ def check(root: Path) -> list[str]:
     parser = MarkdownIt()
     files = 0
     links = 0
+    documents = []
+    anchors = {}
     for path in sorted(root.rglob("*.md")):
         relative = path.relative_to(root)
         if relative.parts[:2] == ("assets", ".crossnote"):
@@ -72,28 +74,22 @@ def check(root: Path) -> list[str]:
         ):
             continue
         files += 1
+        documents.append(path)
         tokens = parser.parse(path.read_text(encoding="utf-8"))
-        for token in tokens:
-            for child in token.children or []:
-                target = (
-                    child.attrGet("href")
-                    if child.type == "link_open"
-                    else child.attrGet("src")
-                    if child.type == "image"
-                    else None
-                )
-                if not target:
-                    continue
-                url = urlsplit(target)
-                if url.scheme or url.netloc or not url.path:
-                    continue
-                links += 1
-                destination = (path.parent / unquote(url.path)).resolve()
-                if not destination.is_relative_to(root) or not destination.exists():
-                    errors.append(f"{relative}：本地链接不存在或越出仓库：{target}")
+        for target in markdown_links(tokens):
+            if not target:
+                continue
+            links += 1
+            diagnostic = check_link(root, path, target, anchors)
+            if diagnostic:
+                errors.append(f"{relative}: {diagnostic}")
+    budget_errors, warnings = check_budgets(root, documents)
+    errors.extend(budget_errors)
+    for warning in warnings:
+        print(f"篇幅提示：{warning}")
     if not files:
         errors.append("没有扫描到 Markdown 文件")
-    print(f"Markdown {files} 份，本地文件链接 {links} 条，技能 {len(found)} 个")
+    print(f"Markdown {files} 份，链接 {links} 条，技能 {len(found)} 个")
     return errors
 
 

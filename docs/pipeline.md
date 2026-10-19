@@ -21,7 +21,7 @@ setup 安装两阶段入口：先在 pre-commit 框架外直接执行 git-format
 
 ## 文档检查
 
-check_docs 用 Markdown 解析器读取内联、引用式链接和图片，检查本地目标存在且不越出仓库，遍历隐藏规则目录。跳过环境、依赖和冻结归档。它核对三个技能的 frontmatter 和界面元数据，不检查外部网站、锚点、HTML 链接、示例行为或自然语言正确性。
+check_docs 用 Markdown 解析器读取内联、引用式链接和图片，检查本地目标存在且不越出仓库，遍历隐藏规则目录。跳过环境、依赖和冻结归档。它核对三个技能的 frontmatter 和界面元数据，同时检查 Markdown 标题锚点、显式 HTML id/name 以及 HTML 中的 href/src。本地目录片段解析 README；非 Markdown 产物片段、外部网站、示例行为与自然语言正确性不在范围内。
 
 冻结历史退出格式化和文字检查。空 Notes 树允许作为新项目起点，但目录缺失会失败。
 
@@ -36,3 +36,7 @@ PR 中，checks 使用事件 base；archive-history 另从目标分支读取 not
 ## 测试与维护
 
 测试在隔离目录和 Git 仓库中构造违规输入，验证格式拒绝、归档改写、依赖失败、观察项、超时与环。新检查器应有违规返回非零的反例。规则来源与边界见[来源与取舍](../来源与取舍.md)。
+
+## 篇幅与内容归属
+
+同一 docs 检查读取 `scripts/doc-policy.json`，硬上限失败，软预算只提示；暂存检查读取 index 导出后的清单与正文。计数与边界见[篇幅规则](../.agents/references/document-budgets.md)。内容流转见[开发工作流](workflow.md)，不实现重复检测。

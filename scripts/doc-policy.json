@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "hard_limits": {
+    "AGENTS.md": 4000,
+    "docs/AGENTS.md": 1800,
+    ".agents/skills/maintain-docs/SKILL.md": 3000,
+    ".agents/skills/maintain-prose/SKILL.md": 2400,
+    ".agents/skills/maintain-decision-notes/SKILL.md": 2600
+  },
+  "soft_limits": [
+    { "glob": "docs/*.md", "characters": 12000 },
+    { "glob": ".agents/notes/implemented/*/*.md", "characters": 5000 }
+  ]
+}

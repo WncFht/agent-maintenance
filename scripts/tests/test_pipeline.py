@@ -72,6 +72,7 @@ class PipelineTests(unittest.TestCase):
         destination.mkdir()
         for name in (
             "check_docs.py",
+            "doc_checks.py",
             "notes_guard.py",
             "check_archive.py",
             "staged_checks.py",

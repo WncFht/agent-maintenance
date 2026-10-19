@@ -19,7 +19,7 @@
 
 [文档](docs/AGENTS.md)、[脚本](scripts/AGENTS.md)、[CI](.github/AGENTS.md)、[维护方法](.agents/references/automation.md)。
 
-本仓的使用与验证入口见 [README](README.md)，流水线边界见[维护流程](docs/pipeline.md)。向其他项目迁移时保留真实存在的目录入口，复用已有检查；本仓检查不代表目标产品已验证。
+本仓的使用与验证入口见 [README](README.md)，检查执行边界见[维护流程](docs/pipeline.md)，内容归属与交付见[开发工作流](docs/workflow.md)。向其他项目迁移时保留真实存在的目录入口，复用已有检查；本仓检查不代表目标产品已验证。
 
 format、lint、hooks、CI 和可选 MPE 的接入从[工具链指南](docs/toolchain.md)进入。setup 安装两阶段 hook，暂存格式化在框架隐藏未暂存改动之前运行；不要用普通 pre-commit install 覆盖该入口。
 

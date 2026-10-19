@@ -28,7 +28,7 @@ flowchart TB
 | [maintain-prose](.agents/skills/maintain-prose/SKILL.md)                   | 文字与注释的完整语义、会话残留清理     |
 | [maintain-decision-notes](.agents/skills/maintain-decision-notes/SKILL.md) | 决策记录、取代、合并和冻结历史         |
 
-三个技能共用文档、文字与决策维护参考，采用时连同技能引用的文件一起复制。产品代码审阅和业务测试沿用目标项目的规范。
+三个技能共用文档、文字与决策维护参考；研究项目可选用问题主报告和支撑报告模板。文档布局、创建门槛与交付步骤见[开发工作流](docs/workflow.md)，目录入口见[文档导航](docs/README.md)。采用时连同技能引用的文件一起复制。产品代码审阅和业务测试沿用目标项目的规范。
 
 `AGENTS.md` 与 `.agents/` 为规则事实源。docs、scripts、.github 与 Notes 的分层入口表达不同区域的职责；不预设产品源码或基准目录。采用时只选择目标项目存在的区域，并修复相对链接。
 
@@ -55,7 +55,7 @@ python scripts/run_checks.py --config scripts/checks.json --mode test
 python scripts/run_checks.py --config scripts/checks.json --mode ci
 ```
 
-docs 检查本地文件链接、技能结构、Notes 格式和归档历史；test 运行维护工具行为测试与 MPE 资源测试；ci 汇总文档、测试、格式、lint、中文间距、YAML 注释、Shell、TOML 和 Actions 检查。直接运行历史检查默认以本地 HEAD 为基线；CI 从 PR base 或 push before 获取基线。详细执行关系见[维护流程](docs/pipeline.md)。
+docs 检查本地文件与章节锚点、技能结构、篇幅预算、Notes 格式和归档历史；test 运行维护工具行为测试与 MPE 资源测试；ci 汇总文档、测试、格式、lint、中文间距、YAML 注释、Shell、TOML 和 Actions 检查。直接运行历史检查默认以本地 HEAD 为基线；CI 从 PR base 或 push before 获取基线。详细执行关系见[维护流程](docs/pipeline.md)。
 
 格式整理使用 `npm run format`、`ruff format .`、`taplo fmt` 与 `python scripts/check_spacing.py --fix`，最后一项只修 Markdown。检查覆盖代码注释和字符串，排除冻结历史与可选预览载荷。契约检查使用 index 快照；部分暂存与冲突处理见[工具链指南](docs/toolchain.md)。
 
@@ -93,7 +93,7 @@ node assets/.crossnote/scripts/build-parser.cjs --check
 给 Agent 的接入提示词（替换两个路径）：
 
 ```text
-参考 <维护包路径> 的 README 和 docs/toolchain.md，为 <目标仓库路径> 接入适用的维护规则与工具链。先读目标现状，按需采用三个技能及其引用、共享参考、模板、Agent Notes 规则和分层 AGENTS.md；按真实语言范围合并 formatter、lint、两阶段 hooks 和 CI，复用已有构建与检查入口。依赖归目标项目与锁文件，不覆盖现有规则，不复制本包的过程记录。需要 MPE 时再采用预览资源与链接脚本。保留来源与许可，修复引用，验证正常与违规输入、真实部分暂存和失败传播。仅配置必要 CI，不新增自动发布；完成后说明改动与未验证项。
+参考 <维护包路径> 的 README 和 docs/toolchain.md，为 <目标仓库路径> 接入适用的维护规则与工具链。先读目标现状，按需采用三个技能及其引用、共享参考、模板、Agent Notes 规则和分层 AGENTS.md；在目标 docs/AGENTS.md 明确实际内容归属，在 docs/README.md 建立阅读入口，按需采用问题报告与支撑材料，不做重复检测；按真实语言范围合并 formatter、lint、两阶段 hooks 和 CI，复用已有构建与检查入口。依赖归目标项目与锁文件，不覆盖现有规则，不复制本包的过程记录。需要 MPE 时再采用预览资源与链接脚本。保留来源与许可，修复引用，验证正常与违规输入、真实部分暂存和失败传播。仅配置必要 CI，不新增自动发布；完成后说明改动与未验证项。
 ```
 
 先核对目标项目已有规则与工具链，按需复制三个技能及其引用的 references、templates 和 notes 规则；不能只复制单个 SKILL.md。保留许可和来源，按真实目录调整入口。
