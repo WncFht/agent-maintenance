@@ -881,3 +881,174 @@ test("clicking the document diagram opens the viewer; dragging, links and contro
         await p.close();
     }
 });
+
+test("arrow keys move the picture in the arrow direction at every zoom", async () => {
+    const p = await pageFor();
+    try {
+        for (const zoom of [0.5, 2]) {
+            await p.click('[data-view="actual"]');
+            await wheel(p, { ctrlKey: true, deltaY: -100 * Math.log(zoom) });
+            await p.locator(".xnote-diagram-viewport").focus();
+            for (const [key, dx, dy] of [
+                ["ArrowLeft", -40, 0],
+                ["ArrowRight", 40, 0],
+                ["ArrowUp", 0, -40],
+                ["ArrowDown", 0, 40],
+            ]) {
+                const a = await camera(p);
+                await p.keyboard.press(key);
+                await settled(p);
+                const b = await camera(p);
+                closeTo(b.x - a.x, dx);
+                closeTo(b.y - a.y, dy);
+                closeTo(b.k, a.k);
+            }
+        }
+    } finally {
+        await p.close();
+    }
+});
+
+async function mapGeometry(p) {
+    return p.evaluate(() => {
+        const svg = document.querySelector(".xnote-diagram-minimap svg"),
+            img = svg.querySelector("image"),
+            v = svg.querySelector(".xnote-minimap-view"),
+            r = svg.getBoundingClientRect();
+        const rect = (e) => ({
+            x: +e.getAttribute("x"),
+            y: +e.getAttribute("y"),
+            width: +e.getAttribute("width"),
+            height: +e.getAttribute("height"),
+        });
+        return {
+            image: rect(img),
+            view: rect(v),
+            screen: { x: r.x, y: r.y, width: r.width, height: r.height },
+        };
+    });
+}
+
+test("minimap is lazy and collapsible, tracks the visible world, and can find an offscreen picture", async () => {
+    const p = await pageFor();
+    try {
+        const toggle = p.locator(
+                '.xnote-diagram-controls [data-view="minimap"]',
+            ),
+            map = p.locator(".xnote-diagram-minimap");
+        assert.equal(await toggle.getAttribute("aria-expanded"), "false");
+        assert.equal(await map.isVisible(), false);
+        assert.equal(await map.locator("image").getAttribute("href"), null);
+        const before = await camera(p);
+        await toggle.click();
+        await settled(p);
+        assert.deepEqual(await camera(p), before);
+        assert.equal(await toggle.getAttribute("aria-expanded"), "true");
+        assert.match(
+            await map.locator("image").getAttribute("href"),
+            /^data:image\/svg\+xml/,
+        );
+        await p.click('[data-view="actual"]');
+        await wheel(p, { deltaX: 5000, deltaY: 4000 });
+        const c = await camera(p),
+            m = await mapGeometry(p),
+            s = m.image.width / 2000;
+        closeTo((m.view.x - m.image.x) / s, -c.x / c.k, 0.1);
+        closeTo((m.view.y - m.image.y) / s, -c.y / c.k, 0.1);
+        closeTo(m.view.width / s, c.w / c.k, 0.1);
+        closeTo(m.view.height / s, c.h / c.k, 0.1);
+        for (const r of [m.image, m.view])
+            assert.ok(
+                r.x >= 7.9 &&
+                    r.y >= 7.9 &&
+                    r.x + r.width <= 212.1 &&
+                    r.y + r.height <= 132.1,
+                JSON.stringify(m),
+            );
+        const x = Math.round(
+                m.screen.x +
+                    ((m.image.x + m.image.width / 2) * m.screen.width) / 220,
+            ),
+            y = Math.round(
+                m.screen.y +
+                    ((m.image.y + m.image.height / 2) * m.screen.height) / 140,
+            );
+        const world = {
+            x: (((x - m.screen.x) * 220) / m.screen.width - m.image.x) / s,
+            y: (((y - m.screen.y) * 140) / m.screen.height - m.image.y) / s,
+        };
+        await p.mouse.click(x, y);
+        await settled(p);
+        const moved = await camera(p);
+        closeTo((moved.w / 2 - moved.x) / moved.k, world.x, 0.1);
+        closeTo((moved.h / 2 - moved.y) / moved.k, world.y, 0.1);
+        closeTo(moved.k, c.k);
+        await map.locator("svg").focus();
+        await map.locator("button").click();
+        assert.equal(await toggle.getAttribute("aria-expanded"), "false");
+        assert.equal(await map.isVisible(), false);
+        await p.keyboard.press("Escape");
+        await p.waitForSelector("dialog", { state: "detached" });
+        await open(p);
+        assert.equal(
+            await p
+                .locator('.xnote-diagram-controls [data-view="minimap"]')
+                .getAttribute("aria-expanded"),
+            "false",
+        );
+    } finally {
+        await p.close();
+    }
+});
+
+test("dragging the minimap viewport preserves the grabbed offset and releases on blur", async () => {
+    const p = await pageFor();
+    try {
+        await p.click('[data-view="actual"]');
+        await p
+            .locator('.xnote-diagram-controls [data-view="minimap"]')
+            .click();
+        await settled(p);
+        const a = await camera(p),
+            m = await mapGeometry(p),
+            s = m.image.width / 2000;
+        const x = Math.round(
+                m.screen.x +
+                    ((m.view.x + m.view.width * 0.3) * m.screen.width) / 220,
+            ),
+            y = Math.round(
+                m.screen.y +
+                    ((m.view.y + m.view.height * 0.3) * m.screen.height) / 140,
+            );
+        await p.mouse.move(x, y);
+        await p.mouse.down();
+        await settled(p);
+        assert.deepEqual(await camera(p), a);
+        await p.mouse.move(x + 60, y + 30, { steps: 4 });
+        await settled(p);
+        const b = await camera(p);
+        closeTo(b.x, a.x - ((60 * 220) / m.screen.width / s) * a.k, 0.15);
+        closeTo(b.y, a.y - ((30 * 140) / m.screen.height / s) * a.k, 0.15);
+        await p.mouse.up();
+        await settled(p);
+        assert.deepEqual(await camera(p), b);
+        const m2 = await mapGeometry(p);
+        await p.mouse.move(
+            m2.screen.x + m2.screen.width / 2,
+            m2.screen.y + m2.screen.height / 2,
+        );
+        await p.mouse.down();
+        await p.evaluate(() => window.dispatchEvent(new Event("blur")));
+        await settled(p);
+        const c = await camera(p);
+        await p.mouse.move(
+            m2.screen.x + m2.screen.width / 2 + 30,
+            m2.screen.y + m2.screen.height / 2 + 30,
+        );
+        await p.mouse.up();
+        await settled(p);
+        assert.deepEqual(await camera(p), c);
+    } finally {
+        await p.close();
+    }
+});

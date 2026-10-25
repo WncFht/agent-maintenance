@@ -509,7 +509,7 @@
     // Included inside diagram-actions' closure; the host still loads one lazy module.
 var viewerSequence = 0;
 var closeViewer = null;
-var viewerCSS = ".xnote-diagram-dialog[data-xnote-viewer] {\n  font: inherit;\n  text-align: left;\n  position: fixed;\n  inset: 0;\n  margin: auto;\n  width: 94vw;\n  max-width: none;\n  height: 90vh;\n  max-height: none;\n  box-sizing: border-box;\n  background: var(--bg-primary);\n  color: var(--text-normal);\n  border: 1px solid var(--border-bold);\n  border-radius: 8px;\n  padding: 12px;\n  overflow: hidden;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button {\n  font: inherit;\n  border: 1px solid var(--border-bold);\n  background: var(--bg-secondary);\n  color: var(--text-normal);\n  border-radius: 4px;\n  padding: 0.25em 0.65em;\n  cursor: pointer;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button:disabled {\n  opacity: 0.45;\n  cursor: default;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button:focus-visible {\n  outline: 2px solid var(--color-blue, #397bb7);\n  outline-offset: 2px;\n}\n.xnote-diagram-dialog[data-xnote-viewer][open] {\n  display: grid;\n  grid-template-rows: auto auto minmax(0, 1fr) auto;\n  gap: 8px;\n}\n.xnote-diagram-dialog[data-xnote-viewer]::backdrop {\n  background: #0008;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-controls,\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 8px;\n  align-items: center;\n  min-width: 0;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-controls[hidden],\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools[hidden] {\n  display: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] [data-view=\"close\"] {\n  margin-left: auto;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scale {\n  min-width: 4.5em;\n  text-align: center;\n  font-variant-numeric: tabular-nums;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-hint {\n  font-size: 0.85rem;\n  color: var(--text-muted);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport {\n  position: relative;\n  height: auto;\n  margin: 0;\n  min-width: 0;\n  min-height: 0;\n  overflow: clip;\n  overscroll-behavior: contain;\n  user-select: none;\n  cursor: grab;\n  border-radius: 4px;\n  background: var(--bg-primary);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport:focus-visible {\n  outline: 2px solid var(--text-muted);\n  outline-offset: -2px;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport.dragging {\n  cursor: grabbing;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene {\n  position: absolute;\n  top: 0;\n  left: 0;\n  transform-origin: 0 0;\n  will-change: transform;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene > svg {\n  display: block;\n  max-width: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene [data-xnote-pick]:focus-visible {\n  outline: 2px solid var(--text-normal);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection {\n  position: absolute;\n  top: 0;\n  left: 0;\n  box-sizing: border-box;\n  border: 2px solid var(--color-blue, #397bb7);\n  background: color-mix(in srgb, var(--color-blue, #397bb7) 10%, transparent);\n  border-radius: 5px;\n  box-shadow: 0 0 0 1px var(--bg-primary);\n  pointer-events: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools {\n  min-height: 2.2em;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools [role=\"status\"] {\n  flex: 1;\n  min-width: 8em;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n@media print {\n  .xnote-diagram-dialog[data-xnote-viewer] {\n    display: none !important;\n  }\n}\n";
+var viewerCSS = ".xnote-diagram-dialog[data-xnote-viewer] {\n  font: inherit;\n  text-align: left;\n  position: fixed;\n  inset: 0;\n  margin: auto;\n  width: 94vw;\n  max-width: none;\n  height: 90vh;\n  max-height: none;\n  box-sizing: border-box;\n  background: var(--bg-primary);\n  color: var(--text-normal);\n  border: 1px solid var(--border-bold);\n  border-radius: 8px;\n  padding: 12px;\n  overflow: hidden;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button {\n  font: inherit;\n  border: 1px solid var(--border-bold);\n  background: var(--bg-secondary);\n  color: var(--text-normal);\n  border-radius: 4px;\n  padding: 0.25em 0.65em;\n  cursor: pointer;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button:disabled {\n  opacity: 0.45;\n  cursor: default;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button:focus-visible {\n  outline: 2px solid var(--color-blue, #397bb7);\n  outline-offset: 2px;\n}\n.xnote-diagram-dialog[data-xnote-viewer][open] {\n  display: grid;\n  grid-template-rows: auto auto minmax(0, 1fr) auto;\n  gap: 8px;\n}\n.xnote-diagram-dialog[data-xnote-viewer]::backdrop {\n  background: #0008;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-controls,\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 8px;\n  align-items: center;\n  min-width: 0;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-controls[hidden],\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools[hidden] {\n  display: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] [data-view=\"close\"] {\n  margin-left: auto;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scale {\n  min-width: 4.5em;\n  text-align: center;\n  font-variant-numeric: tabular-nums;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-hint {\n  font-size: 0.85rem;\n  color: var(--text-muted);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-stage {\n  position: relative;\n  display: grid;\n  grid-template-rows: minmax(0, 1fr);\n  min-width: 0;\n  min-height: 0;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-minimap {\n  position: absolute;\n  bottom: 12px;\n  right: 12px;\n  width: min(220px, 45%);\n  box-sizing: border-box;\n  padding: 6px;\n  background: var(--bg-primary);\n  border: 1px solid var(--border-bold);\n  border-radius: 6px;\n  box-shadow: 0 2px 10px #0003;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-minimap[hidden] {\n  display: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-minimap svg {\n  display: block;\n  width: 100%;\n  height: auto;\n  cursor: crosshair;\n  touch-action: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-minimap svg:focus-visible {\n  outline: 2px solid var(--color-blue, #397bb7);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-minimap image,\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-minimap rect {\n  pointer-events: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-minimap .xnote-minimap-image-bounds {\n  fill: none;\n  stroke: var(--text-muted);\n  stroke-width: 1;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-minimap .xnote-minimap-view {\n  fill: color-mix(in srgb, var(--color-blue, #397bb7) 12%, transparent);\n  stroke: var(--color-blue, #397bb7);\n  stroke-width: 2;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-minimap-heading {\n  display: flex;\n  justify-content: space-between;\n  align-items: center;\n  gap: 4px;\n  font-size: 0.75rem;\n  margin-bottom: 4px;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-minimap-heading button {\n  padding: 0 0.4em;\n}\n.xnote-diagram-dialog[data-xnote-viewer] [data-view=\"minimap\"][aria-expanded=\"true\"] {\n  border-color: var(--color-blue, #397bb7);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport {\n  position: relative;\n  height: auto;\n  margin: 0;\n  min-width: 0;\n  min-height: 0;\n  overflow: clip;\n  overscroll-behavior: contain;\n  user-select: none;\n  cursor: grab;\n  border-radius: 4px;\n  background: var(--bg-primary);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport:focus-visible {\n  outline: 2px solid var(--text-muted);\n  outline-offset: -2px;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport.dragging {\n  cursor: grabbing;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene {\n  position: absolute;\n  top: 0;\n  left: 0;\n  transform-origin: 0 0;\n  will-change: transform;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene > svg {\n  display: block;\n  max-width: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene [data-xnote-pick]:focus-visible {\n  outline: 2px solid var(--text-normal);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection {\n  position: absolute;\n  top: 0;\n  left: 0;\n  box-sizing: border-box;\n  border: 2px solid var(--color-blue, #397bb7);\n  background: color-mix(in srgb, var(--color-blue, #397bb7) 10%, transparent);\n  border-radius: 5px;\n  box-shadow: 0 0 0 1px var(--bg-primary);\n  pointer-events: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools {\n  min-height: 2.2em;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools [role=\"status\"] {\n  flex: 1;\n  min-width: 8em;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n@media print {\n  .xnote-diagram-dialog[data-xnote-viewer] {\n    display: none !important;\n  }\n}\n";
 
 function selectableNodes(svg) {
     var selectors = {
@@ -594,9 +594,9 @@ function openViewer(result, returnFocus) {
     viewerStyle.textContent = viewerCSS;
     dialog.setAttribute("aria-label", "图表查看器");
     dialog.innerHTML =
-        '<div class="xnote-diagram-controls"><button type="button" data-view="out" aria-label="缩小">−</button><output class="xnote-diagram-scale" aria-label="缩放比例"></output><button type="button" data-view="in" aria-label="放大">+</button><button type="button" data-view="fit">全图</button><button type="button" data-view="actual">100%</button><button type="button" data-view="close">关闭</button></div>' +
+        '<div class="xnote-diagram-controls"><button type="button" data-view="out" aria-label="缩小">−</button><output class="xnote-diagram-scale" aria-label="缩放比例"></output><button type="button" data-view="in" aria-label="放大">+</button><button type="button" data-view="fit">全图</button><button type="button" data-view="actual">100%</button><button type="button" data-view="minimap" aria-expanded="false">小地图</button><button type="button" data-view="close">关闭</button></div>' +
         '<div class="xnote-diagram-hint">双指移动 · 捏合缩放 · 拖动平移 · 0 全图</div>' +
-        '<div class="xnote-diagram-viewport" tabindex="0" role="region" aria-label="图表画布，双指移动，捏合缩放；方向键移动，加减号缩放，0 查看全图"><div class="xnote-diagram-scene"></div><div class="xnote-diagram-selection" hidden></div></div>' +
+        '<div class="xnote-diagram-stage"><div class="xnote-diagram-viewport" tabindex="0" role="region" aria-label="图表画布，双指移动，捏合缩放；方向键按箭头方向移动图片，加减号缩放，0 查看全图"><div class="xnote-diagram-scene"></div><div class="xnote-diagram-selection" hidden></div></div><aside class="xnote-diagram-minimap" hidden><div class="xnote-diagram-minimap-heading"><span>图表导航</span><button type="button" data-view="minimap" aria-label="收起小地图">×</button></div><svg viewBox="0 0 220 140" width="220" height="140" tabindex="0" role="region" aria-label="小地图：点击定位，拖动视口框导航；方向键按箭头方向移动图片"><image preserveAspectRatio="none"/><rect class="xnote-minimap-image-bounds"/><rect class="xnote-minimap-view"/></svg></aside></div>' +
         '<div class="xnote-diagram-selection-tools" hidden><span role="status" aria-live="polite"></span><button type="button" data-view="selection">定位选中项</button><button type="button" data-view="copy">复制文字</button><button type="button" data-view="clear">清除选择</button></div>';
     var viewport = dialog.querySelector(".xnote-diagram-viewport");
     // The snapshot already composites the author's actual paper color. Extend
@@ -605,6 +605,17 @@ function openViewer(result, returnFocus) {
     var scene = dialog.querySelector(".xnote-diagram-scene");
     var outline = dialog.querySelector(".xnote-diagram-selection");
     var scaleLabel = dialog.querySelector("output");
+    var minimapPanel = dialog.querySelector(".xnote-diagram-minimap");
+    var minimap = minimapPanel.querySelector("svg");
+    var minimapImage = minimap.querySelector("image");
+    var minimapView = minimap.querySelector(".xnote-minimap-view");
+    var minimapBounds = minimap.querySelector(".xnote-minimap-image-bounds");
+    var minimapToggle = dialog.querySelector('[data-view="minimap"]');
+    minimapPanel.id = "xnote-minimap-" + viewerSequence;
+    minimapToggle.setAttribute("aria-controls", minimapPanel.id);
+    if (result.paper) minimap.style.backgroundColor = result.paper;
+    var minimapGeometry = null,
+        minimapDrag = null;
     var selectionTools = dialog.querySelector(".xnote-diagram-selection-tools");
     var selectionLabel = selectionTools.querySelector('[role="status"]');
     scene.appendChild(svg);
@@ -692,7 +703,141 @@ function openViewer(result, returnFocus) {
             outline.style.width = selectionBounds.width * state.k + 6 + "px";
             outline.style.height = selectionBounds.height * state.k + 6 + "px";
         } else outline.hidden = true;
+        paintMinimap();
     }
+    function worldViewport() {
+        return {
+            x: -state.x / state.k,
+            y: -state.y / state.k,
+            width: width / state.k,
+            height: height / state.k,
+        };
+    }
+    function mapRect(element, x, y, w, h) {
+        element.setAttribute("x", x);
+        element.setAttribute("y", y);
+        element.setAttribute("width", w);
+        element.setAttribute("height", h);
+    }
+    function paintMinimap() {
+        if (minimapPanel.hidden || !width || !height) return;
+        var view = worldViewport();
+        // Include both the picture and the visible world, even after free pan
+        // moves the picture offscreen. Freeze this mapping during a map drag so
+        // resizing the overview cannot move the grabbed point under the cursor.
+        if (minimapDrag) minimapGeometry = minimapDrag.geometry;
+        else {
+            var x = Math.min(0, view.x),
+                y = Math.min(0, view.y);
+            var w = Math.max(result.width, view.x + view.width) - x;
+            var h = Math.max(result.height, view.y + view.height) - y;
+            var k = Math.min(204 / w, 124 / h);
+            minimapGeometry = {
+                k: k,
+                x: (220 - w * k) / 2 - x * k,
+                y: (140 - h * k) / 2 - y * k,
+            };
+        }
+        var m = minimapGeometry;
+        mapRect(
+            minimapImage,
+            m.x,
+            m.y,
+            result.width * m.k,
+            result.height * m.k,
+        );
+        mapRect(
+            minimapBounds,
+            m.x,
+            m.y,
+            result.width * m.k,
+            result.height * m.k,
+        );
+        mapRect(
+            minimapView,
+            m.x + view.x * m.k,
+            m.y + view.y * m.k,
+            view.width * m.k,
+            view.height * m.k,
+        );
+    }
+    function mapPoint(event) {
+        var r = minimap.getBoundingClientRect();
+        return {
+            x: ((event.clientX - r.left) * 220) / r.width,
+            y: ((event.clientY - r.top) * 140) / r.height,
+        };
+    }
+    function centerOn(point) {
+        wheel = null;
+        state.x = width / 2 - point.x * state.k;
+        state.y = height / 2 - point.y * state.k;
+        state.mode = "manual";
+        schedule();
+    }
+    function endMinimapDrag() {
+        var old = minimapDrag;
+        minimapDrag = null;
+        if (old && minimap.hasPointerCapture(old.id))
+            minimap.releasePointerCapture(old.id);
+        if (old) schedule();
+    }
+    on(minimap, "pointerdown", function (event) {
+        if (event.button !== 0 || minimapDrag || minimapPanel.hidden) return;
+        consume(event);
+        endDrag();
+        wheel = null;
+        flush();
+        minimap.focus({ preventScroll: true });
+        var p = mapPoint(event),
+            m = minimapGeometry,
+            view = worldViewport();
+        var inside =
+            p.x >= m.x + view.x * m.k - 4 &&
+            p.x <= m.x + (view.x + view.width) * m.k + 4 &&
+            p.y >= m.y + view.y * m.k - 4 &&
+            p.y <= m.y + (view.y + view.height) * m.k + 4;
+        var target = inside
+            ? { x: view.x + view.width / 2, y: view.y + view.height / 2 }
+            : { x: (p.x - m.x) / m.k, y: (p.y - m.y) / m.k };
+        minimapDrag = {
+            id: event.pointerId,
+            geometry: m,
+            start: p,
+            center: target,
+            clientX: event.clientX,
+            clientY: event.clientY,
+            moved: false,
+        };
+        if (!inside) centerOn(target);
+        minimap.setPointerCapture(event.pointerId);
+    });
+    on(minimap, "pointermove", function (event) {
+        if (!minimapDrag || minimapDrag.id !== event.pointerId) return;
+        var p = mapPoint(event),
+            d = minimapDrag;
+        if (
+            !d.moved &&
+            Math.hypot(event.clientX - d.clientX, event.clientY - d.clientY) < 4
+        )
+            return;
+        d.moved = true;
+        centerOn({
+            x: d.center.x + (p.x - d.start.x) / d.geometry.k,
+            y: d.center.y + (p.y - d.start.y) / d.geometry.k,
+        });
+    });
+    on(minimap, "pointerup", function (event) {
+        if (!minimapDrag || minimapDrag.id !== event.pointerId) return;
+        if (!minimapDrag.moved) {
+            var p = mapPoint(event),
+                m = minimapDrag.geometry;
+            centerOn({ x: (p.x - m.x) / m.k, y: (p.y - m.y) / m.k });
+        }
+        endMinimapDrag();
+    });
+    on(minimap, "pointercancel", endMinimapDrag);
+    on(minimap, "lostpointercapture", endMinimapDrag);
     function schedule() {
         if (!frame && !disposed) frame = requestAnimationFrame(paint);
     }
@@ -821,6 +966,7 @@ function openViewer(result, returnFocus) {
     }
     function resetInput() {
         endDrag();
+        endMinimapDrag();
         space = false;
         physicalControl = false;
         wheel = null;
@@ -836,9 +982,13 @@ function openViewer(result, returnFocus) {
         window,
         "wheel",
         function (event) {
-            if (!event.composedPath().includes(viewport)) return;
+            if (
+                !event.composedPath().includes(viewport) &&
+                !event.composedPath().includes(minimap)
+            )
+                return;
             consume(event);
-            if (drag) return;
+            if (drag || minimapDrag) return;
             var mode = event.deltaMode;
             var dx = event.deltaX,
                 dy = event.deltaY;
@@ -910,7 +1060,11 @@ function openViewer(result, returnFocus) {
         window,
         "dblclick",
         function (event) {
-            if (!event.composedPath().includes(viewport) || event.button !== 0)
+            if (
+                (!event.composedPath().includes(viewport) &&
+                    !event.composedPath().includes(minimap)) ||
+                event.button !== 0
+            )
                 return;
             consume(event);
             // Keep MPE's source-navigation double-click out of the modal.
@@ -1020,7 +1174,7 @@ function openViewer(result, returnFocus) {
                 }
                 return;
             }
-            if (event.target !== viewport) return;
+            if (event.target !== viewport && event.target !== minimap) return;
             var key = event.key;
             if (
                 ![
@@ -1046,8 +1200,8 @@ function openViewer(result, returnFocus) {
             else if (key === "-") zoomAt(state.k / 1.25, center());
             else
                 pan(
-                    key === "ArrowLeft" ? 40 : key === "ArrowRight" ? -40 : 0,
-                    key === "ArrowUp" ? 40 : key === "ArrowDown" ? -40 : 0,
+                    key === "ArrowLeft" ? -40 : key === "ArrowRight" ? 40 : 0,
+                    key === "ArrowUp" ? -40 : key === "ArrowDown" ? 40 : 0,
                 );
         },
         { capture: true },
@@ -1071,7 +1225,22 @@ function openViewer(result, returnFocus) {
         if (!button) return;
         var action = button.dataset.view;
         if (action === "close") dialog.close();
-        else if (action === "fit") fit();
+        else if (action === "minimap") {
+            endMinimapDrag();
+            minimapPanel.hidden = !minimapPanel.hidden;
+            minimapToggle.setAttribute(
+                "aria-expanded",
+                String(!minimapPanel.hidden),
+            );
+            if (!minimapPanel.hidden && !minimapImage.hasAttribute("href"))
+                minimapImage.setAttribute("href", imageSource(result));
+            if (
+                minimapPanel.hidden &&
+                minimapPanel.contains(document.activeElement)
+            )
+                minimapToggle.focus({ preventScroll: true });
+            schedule();
+        } else if (action === "fit") fit();
         else if (action === "actual") zoomAt(1, center());
         else if (action === "selection") focusSelection();
         else if (action === "clear") {

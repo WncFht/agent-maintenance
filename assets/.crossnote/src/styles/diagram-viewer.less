@@ -63,6 +63,70 @@
         font-size: 0.85rem;
         color: var(--text-muted);
     }
+    .xnote-diagram-stage {
+        position: relative;
+        display: grid;
+        grid-template-rows: minmax(0, 1fr);
+        min-width: 0;
+        min-height: 0;
+    }
+    .xnote-diagram-minimap {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        width: min(220px, 45%);
+        box-sizing: border-box;
+        padding: 6px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-bold);
+        border-radius: 6px;
+        box-shadow: 0 2px 10px #0003;
+        &[hidden] {
+            display: none;
+        }
+        svg {
+            display: block;
+            width: 100%;
+            height: auto;
+            cursor: crosshair;
+            touch-action: none;
+            &:focus-visible {
+                outline: 2px solid var(--color-blue, #397bb7);
+            }
+        }
+        image,
+        rect {
+            pointer-events: none;
+        }
+        .xnote-minimap-image-bounds {
+            fill: none;
+            stroke: var(--text-muted);
+            stroke-width: 1;
+        }
+        .xnote-minimap-view {
+            fill: color-mix(
+                in srgb,
+                var(--color-blue, #397bb7) 12%,
+                transparent
+            );
+            stroke: var(--color-blue, #397bb7);
+            stroke-width: 2;
+        }
+    }
+    .xnote-diagram-minimap-heading {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 4px;
+        font-size: 0.75rem;
+        margin-bottom: 4px;
+        button {
+            padding: 0 0.4em;
+        }
+    }
+    [data-view="minimap"][aria-expanded="true"] {
+        border-color: var(--color-blue, #397bb7);
+    }
     .xnote-diagram-viewport {
         position: relative;
         height: auto;
