@@ -1,0 +1,7 @@
+{
+  "flow": "flowchart LR\n subgraph group[处理阶段]\n A[普通节点] -->|通过| B[作者红色]\n B --> C{检查}\n end\n C --> D((完成))\n classDef chosen fill:#ff0000,stroke:#00ff00,color:#ffffff;\n class B chosen;\n style C fill:#00ffff,stroke:#0000ff,color:#000000;",
+  "sequence": "sequenceDiagram\n autonumber\n participant U as 用户\n participant S as 服务\n U->>+S: 查询请求\n alt 缓存命中\n S-->>U: 返回结果\n else 未命中\n Note over S: 读取数据库\n S-->>U: 查询结果\n end\n deactivate S",
+  "state": "stateDiagram-v2\n [*] --> Pending\n Pending --> Working: 开始\n state Working {\n [*] --> Running\n Running --> [*]\n }\n Working --> Done: 完成\n Done --> [*]",
+  "class": "classDiagram\n class Task {\n +String name\n +run()\n }\n class Result\n class Worker\n Task o-- Result: creates\n Worker --|> Task",
+  "er": "erDiagram\n USER ||--o{ NOTE : owns\n USER {\n string name\n }\n NOTE {\n string title\n }"
+}

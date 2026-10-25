@@ -1,0 +1,150 @@
+/* Paint only. The build limits these selectors to the supported diagram types
+   and excludes .native containers. Author node classDef/style rules win. */
+.node > rect,
+.node > polygon,
+.node > ellipse,
+.node > circle:not(.state-start):not(.state-end),
+.node > path {
+    fill: var(--diagram-surface);
+    stroke: var(--diagram-border);
+}
+/* Class/ER renderers use a separate fill path and outline path. Inherit from
+   the group so an author's classDef on node children still takes priority. */
+.node > .outer-path,
+.node > .row-rect-odd,
+.node > .row-rect-even {
+    fill: var(--diagram-surface);
+    stroke: var(--diagram-border);
+}
+.node > .row-rect-even {
+    fill: var(--diagram-paper);
+}
+.node > .outer-path > path:not([fill="none"]),
+.node > .row-rect-odd > path:not([fill="none"]),
+.node > .row-rect-even > path:not([fill="none"]) {
+    fill: inherit;
+    stroke: none;
+}
+.node > .outer-path > path[fill="none"],
+.node > .row-rect-odd > path[fill="none"],
+.node > .row-rect-even > path[fill="none"] {
+    fill: none;
+    stroke: inherit;
+}
+.label text,
+.nodeLabel,
+.classTitle,
+.cluster-label text,
+.cluster-label span,
+.edgeLabel text,
+.edgeLabel .label text,
+.relationshipLabel {
+    fill: var(--diagram-ink);
+    color: var(--diagram-ink);
+}
+.label text > tspan,
+.nodeLabel p,
+.nodeLabel span,
+.nodeLabel tspan,
+.edgeLabel tspan {
+    fill: inherit;
+    color: inherit;
+}
+.cluster rect,
+.statediagram-cluster rect,
+.statediagram-cluster .inner {
+    fill: var(--diagram-paper);
+    stroke: var(--diagram-border);
+}
+.flowchart-link,
+.transition,
+.relationshipLine,
+.relation,
+.divider {
+    stroke: var(--diagram-line);
+}
+.edgeLabel {
+    fill: var(--diagram-ink);
+    background-color: var(--diagram-paper);
+    color: var(--diagram-ink);
+}
+.edgeLabel p,
+.edgeLabel span {
+    background-color: var(--diagram-paper);
+    color: inherit;
+}
+/* Mermaid writes a backdrop inline in SVG-text labels. This override is
+   confined to that decoration; it does not override user node/link colors. */
+.edgeLabel .label rect,
+.edgeLabel .label .background {
+    fill: var(--diagram-paper) !important;
+    opacity: 1 !important;
+}
+.node circle.state-start,
+.node circle.state-end,
+.state-start,
+.state-end,
+.end-state-inner,
+.state-join,
+.state-fork {
+    fill: var(--diagram-ink);
+    stroke: var(--diagram-ink);
+}
+.actor,
+.note,
+.activation0,
+.activation1,
+.activation2,
+.labelBox {
+    fill: var(--diagram-surface);
+    stroke: var(--diagram-border);
+}
+text.actor,
+text.actor > tspan,
+.messageText,
+.noteText,
+.noteText > tspan,
+.loopText,
+.loopText > tspan,
+.labelText,
+.labelText > tspan,
+.sectionTitle,
+.sectionTitle > tspan {
+    fill: var(--diagram-ink);
+}
+.actor-line,
+.messageLine0,
+.messageLine1,
+.loopLine {
+    stroke: var(--diagram-line);
+}
+marker path,
+.marker path,
+.arrowheadPath {
+    fill: var(--diagram-line);
+    stroke: var(--diagram-line);
+}
+marker circle,
+marker line {
+    fill: var(--diagram-paper);
+    stroke: var(--diagram-line);
+}
+/* Preserve hollow UML and ER relationship symbols. */
+marker .aggregation,
+marker.aggregation path,
+marker .extension,
+marker.extension path {
+    fill: var(--diagram-paper);
+}
+.marker.er path {
+    fill: none;
+    stroke: var(--diagram-line);
+}
+.sequenceNumber {
+    fill: var(--diagram-paper);
+}
+marker[id$="sequencenumber"] circle,
+marker[id$="sequencenumber"] path {
+    fill: var(--diagram-ink);
+    stroke: none;
+}

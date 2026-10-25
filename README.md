@@ -34,7 +34,7 @@ flowchart TB
 
 ## 本地准备
 
-需要 Python 3.10+、Node 22+ 和 Git。Python 直接依赖钉在 `requirements-dev.txt`，传递依赖与哈希归 `requirements-dev.lock`，npm 工具归 `package.json` 与锁文件。系统工具使用已有包管理器；本机有 Homebrew 时执行：
+需要 Python 3.10+、Node 22.12+ 和 Git。Python 直接依赖钉在 `requirements-dev.txt`，传递依赖与哈希归 `requirements-dev.lock`，npm 工具归 `package.json` 与锁文件。系统工具使用已有包管理器；本机有 Homebrew 时执行：
 
 ```sh
 brew install autocorrect gitleaks taplo actionlint shfmt shellcheck zsh
@@ -77,23 +77,23 @@ flowchart TB
 
 ## 可选 MPE 预览
 
-Markdown Preview Enhanced（MPE）资源归 [assets/.crossnote](assets/.crossnote/README.md)，包含主题、伪代码渲染、生成器、测试和第三方许可。目标仓库复制链接脚本后建立被忽略的 `.crossnote` 本机目录；配置与资源目录使用软链，两个注入脚本使用同文件系统内的硬链。默认源为 `~/src/agent-maintenance/assets/.crossnote`，可用 `CROSSNOTE_SRC` 覆盖。
-
-资源测试在本包中运行：
+Markdown Preview Enhanced（MPE）资源归 [assets/.crossnote](assets/.crossnote/README.md)，包含统一主题、五类 Mermaid 着色、图表查看与 SVG／PNG 保存、伪代码渲染和测试。维护 `src/`，构建生成宿主固定文件；目标项目通过显式同步获得独立副本，部署哈希用于识别过期与本地定制。
 
 ```sh
+npm run build:preview
 npm run test:preview
-node assets/.crossnote/scripts/build-parser.cjs --check
+node assets/.crossnote/scripts/sync.cjs --target /absolute/project
+node assets/.crossnote/scripts/sync.cjs --target /absolute/project --check
 ```
 
-链接安装、浏览器依赖、工作区信任和验证边界见[预览配置](docs/toolchain.md#可选-mpe-预览)。
+旧的 `scripts/crossnote-links.sh` 保留为同步兼容入口。脚本权限、浏览器依赖与验证边界见[预览配置](docs/toolchain.md#可选-mpe-预览)，旧部署按[迁移指南](docs/upgrade-guide/unreleased/crossnote/guide.md)切换。
 
 ## 在其他项目采用
 
 给 Agent 的接入提示词（替换两个路径）：
 
 ```text
-参考 <维护包路径> 的 README 和 docs/toolchain.md，为 <目标仓库路径> 接入适用的维护规则与工具链。先读目标现状，按需采用三个技能及其引用、共享参考、模板、Agent Notes 规则和分层 AGENTS.md；在目标 docs/AGENTS.md 明确实际内容归属，在 docs/README.md 建立阅读入口，按需采用问题报告与支撑材料，不做重复检测；按真实语言范围合并 formatter、lint、两阶段 hooks 和 CI，复用已有构建与检查入口。依赖归目标项目与锁文件，不覆盖现有规则，不复制本包的过程记录。需要 MPE 时再采用预览资源与链接脚本。保留来源与许可，修复引用，验证正常与违规输入、真实部分暂存和失败传播。仅配置必要 CI，不新增自动发布；完成后说明改动与未验证项。
+参考 <维护包路径> 的 README 和 docs/toolchain.md，为 <目标仓库路径> 接入适用的维护规则与工具链。先读目标现状，按需采用三个技能及其引用、共享参考、模板、Agent Notes 规则和分层 AGENTS.md；在目标 docs/AGENTS.md 明确实际内容归属，在 docs/README.md 建立阅读入口，按需采用问题报告与支撑材料，不做重复检测；按真实语言范围合并 formatter、lint、两阶段 hooks 和 CI，复用已有构建与检查入口。依赖归目标项目与锁文件，不覆盖现有规则，不复制本包的过程记录。需要 MPE 时再采用预览资源与同步入口。保留来源与许可，修复引用，验证正常与违规输入、真实部分暂存和失败传播。仅配置必要 CI，不新增自动发布；完成后说明改动与未验证项。
 ```
 
 先核对目标项目已有规则与工具链，按需复制三个技能及其引用的 references、templates 和 notes 规则；不能只复制单个 SKILL.md。保留许可和来源，按真实目录调整入口。

@@ -57,14 +57,17 @@ CI 调用项目已有完整入口，与本地复用叶子检查。workflow 文�
 
 ## 可选 MPE 预览
 
-assets/.crossnote 保留预览资源、测试、vendored 许可证和校验和，退出通用格式化，用自身生成与测试入口验证。复制 scripts/crossnote-links.sh 到目标 scripts，忽略根 .crossnote 后运行：
+资源维护、生成与图表行为归 [assets/.crossnote](../assets/.crossnote/README.md)。安装锁定依赖后，从维护仓执行：
 
 ```sh
-CROSSNOTE_SRC=/absolute/path/to/agent-maintenance/assets/.crossnote bash scripts/crossnote-links.sh
-npm run test:preview
-node assets/.crossnote/scripts/build-parser.cjs --check
+npm run build:preview
+node assets/.crossnote/scripts/build.cjs --check
+node assets/.crossnote/scripts/sync.cjs --target /absolute/project
+node assets/.crossnote/scripts/sync.cjs --target /absolute/project --check
 ```
 
-默认源为 ~/src/agent-maintenance/assets/.crossnote，CROSSNOTE_SRC 可覆盖。配置与目录使用软链，两个注入脚本使用硬链以满足 MPE 的工作区真实路径检查，目标与资源必须同文件系统。原子保存会改变源 inode，更新后重跑链接脚本；实体定制拒绝覆盖。脚本只诊断全局 style 链的状态；需要全局主题时，由维护者显式配置。
+目标项目忽略根 `.crossnote/`。同步复制运行资源和伪代码检查器，记录文件哈希；不使用源文件链接，也不自动修改全局样式。已知旧副本和指向维护源的链接可迁移，本地定制会阻止写入。旧的 `scripts/crossnote-links.sh` 仍接受 `CROSSNOTE_SRC` 并转交同步工具；常规更新使用上述入口。迁移、冲突及恢复步骤见[升级指南](upgrade-guide/unreleased/crossnote/guide.md)。
 
-工作区需要 MPE、信任工作区并允许预览脚本；KaTeX、none.css、systemColorScheme 参考编辑器配置。Playwright 与 QuickJS 属于锁定的 npm 开发依赖；没有本机 Chrome 时先运行 `npx playwright install chromium`，Linux CI 使用 `--with-deps` 安装浏览器依赖。测试覆盖生成段、解析器、运行时与主题；跳过项须单独报告。浏览器测试不等于 VS Code 扩展或导出 PDF 的视觉验收。
+浏览器增强使用 MPE 0.8.40／Crossnote 0.9.42 的受信任本地 head 脚本入口；工作区设 `previewTheme: none.css`、`previewColorScheme: systemColorScheme`。启用外观按钮与图表操作时，信任工作区，并在 **VS Code 用户设置**中设 `markdown-preview-enhanced.enablePreviewScripts: true`；该项是 application 作用域，工作区设置无效。无需开启执行任意代码块的 `enableScriptExecution`。同步后重新打开预览，让宿主加载新配置和脚本。
+
+开发依赖锁定了 LESS、CSS 选择器解析器、Playwright、QuickJS、Crossnote 及两套 Mermaid 测试版本；目标工作区不需要这些 npm 包。无本机浏览器时运行 `npx playwright install chromium`，Linux CI 使用 `--with-deps`。运行 `npm run test:preview` 验证生成物、解析器、主题、图表、导出和部署；未运行的编辑器／输出链路须单独说明，不能由邻近测试替代。

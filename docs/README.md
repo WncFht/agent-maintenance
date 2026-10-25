@@ -11,3 +11,5 @@
 | 编写问题主报告与支撑验证         | [实验报告规则](../.agents/references/experiment-reports.md) |
 | 查询篇幅和链接检查的保证         | [篇幅与检查边界](../.agents/references/document-budgets.md) |
 | 核对规则与资源来源               | [来源与取舍](../来源与取舍.md)                              |
+
+预览资源的链接式部署迁移见 [Crossnote 升级指南](upgrade-guide/unreleased/crossnote/guide.md)。

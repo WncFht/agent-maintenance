@@ -125,20 +125,19 @@ class ToolchainTests(unittest.TestCase):
         )
         self.assertEqual(result.returncode, 7)
 
-    def test_preview_links_preserve_customizations_and_support_source_override(self):
-        """Build real soft/hard links and refuse an owned configuration file."""
+    def test_preview_sync_preserves_customizations_and_supports_source_override(self):
+        """The legacy shell entry now deploys independent, verifiable copies."""
         scripts = self.root / "scripts"
         scripts.mkdir()
         script = scripts / "crossnote-links.sh"
         shutil.copyfile(ROOT / "scripts/crossnote-links.sh", script)
         source = self.root / "preview-source"
-        # Hard-link behavior requires a source on the fixture filesystem.
         shutil.copytree(ROOT / "assets/.crossnote", source)
         environment = {**os.environ, "CROSSNOTE_SRC": str(source)}
         command = ["bash", str(script)]
-        for _ in range(2):
+        for flags in ([], [], ["--check"]):
             result = subprocess.run(
-                command, env=environment, capture_output=True, check=False
+                command + flags, env=environment, capture_output=True, check=False
             )
             self.assertEqual(result.returncode, 0, result.stderr)
         for name in (
@@ -147,19 +146,16 @@ class ToolchainTests(unittest.TestCase):
             "config.js",
             "head.html",
             "README.md",
-            "scripts",
-            "tests",
-            "vendor",
+            "pseudocode-runtime.js",
+            "theme-toggle.js",
+            "diagram-actions.js",
+            "preview.js",
         ):
-            link = self.root / ".crossnote" / name
-            self.assertTrue(link.is_symlink())
-            self.assertTrue(link.samefile(source / name))
-        for name in ("pseudocode-runtime.js", "theme-toggle.js"):
-            link = self.root / ".crossnote" / name
-            self.assertFalse(link.is_symlink())
-            self.assertTrue(link.samefile(source / name))
+            deployed = self.root / ".crossnote" / name
+            self.assertFalse(deployed.is_symlink())
+            self.assertFalse(deployed.samefile(source / name))
+            self.assertEqual(deployed.read_bytes(), (source / name).read_bytes())
         custom = self.root / ".crossnote/parser.js"
-        custom.unlink()
         custom.write_text("// user configuration\n")
         rejected = subprocess.run(
             command, env=environment, capture_output=True, check=False

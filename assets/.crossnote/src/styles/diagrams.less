@@ -1,0 +1,100 @@
+// Diagram roles inherit the document palette; font metrics remain Mermaid's.
+.mermaid {
+    --diagram-paper: var(--bg-primary);
+    --diagram-ink: var(--text-normal);
+    --diagram-surface: var(--bg-secondary);
+    --diagram-border: var(--text-muted);
+    --diagram-line: var(--text-muted);
+    position: relative;
+    overflow-x: auto;
+    margin-block: 1.25em;
+    padding: 0.5em;
+    text-align: center;
+    > svg {
+        vertical-align: middle;
+    }
+}
+.xnote-diagram-tools {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.4em;
+    margin-top: 0.5em;
+    button {
+        font: inherit;
+        font-size: 0.8rem;
+    }
+}
+.xnote-diagram-tools button,
+.xnote-diagram-dialog button {
+    border: 1px solid var(--border-bold);
+    background: var(--bg-secondary);
+    color: var(--text-normal);
+    border-radius: 4px;
+    padding: 0.25em 0.65em;
+    cursor: pointer;
+    &:focus-visible {
+        outline: 2px solid var(--text-normal);
+        outline-offset: 2px;
+    }
+}
+.xnote-diagram-dialog {
+    width: 90vw;
+    max-width: 1400px;
+    height: 85vh;
+    max-height: 90vh;
+    box-sizing: border-box;
+    background: var(--bg-primary);
+    color: var(--text-normal);
+    border: 1px solid var(--border-bold);
+    border-radius: 6px;
+    padding: 1em;
+    &::backdrop {
+        background: #0008;
+    }
+    .xnote-diagram-controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5em;
+        align-items: center;
+    }
+    .xnote-diagram-viewport {
+        height: calc(100% - 3em);
+        overflow: auto;
+        margin-top: 1em;
+    }
+    .xnote-diagram-image {
+        display: block;
+        max-width: none;
+        margin: auto;
+    }
+}
+.xnote-diagram-status {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+@media print {
+    .mermaid {
+        --diagram-paper: #ffffff;
+        --diagram-ink: #000000;
+        --diagram-surface: #f5f5f5;
+        --diagram-border: #555555;
+        --diagram-line: #555555;
+        overflow: visible;
+        break-inside: avoid;
+        padding: 0;
+        > svg {
+            max-width: 100% !important;
+            height: auto;
+        }
+    }
+    .xnote-diagram-tools,
+    .xnote-diagram-dialog {
+        display: none !important;
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    body,
+    .markdown-preview {
+        transition: none;
+    }
+}

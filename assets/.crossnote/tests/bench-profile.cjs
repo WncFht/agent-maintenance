@@ -560,9 +560,7 @@ async function main() {
             parseMdMs: el,
             htmlBytes: html.length,
             figureRendered: html.includes("crossnote-pseudocode"),
-            themeImported:
-              md2.includes("crossnote-theme-toggle") ||
-              (out.JSAndCssFiles || []).some((f) => f.includes("theme-toggle")),
+            sourcePreserved: md2 === d.markdown,
           };
         } catch (e) {
           report.e2e.docs[d.name] = { error: String((e && e.message) || e) };
@@ -658,7 +656,7 @@ async function main() {
               ? "ERROR " + r.error
               : fmt(r.parseMdMs) + " ms → " + kb(r.htmlBytes) + " html" +
                 (r.figureRendered ? " (figure rendered)" : "") +
-                (r.themeImported ? "" : " [no import markers!]")
+                (r.sourcePreserved ? "" : " [source changed]")
           }`,
         );
       }

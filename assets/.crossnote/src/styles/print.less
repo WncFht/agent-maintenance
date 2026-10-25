@@ -1,0 +1,267 @@
+//==============================================================================
+// Define Print Style
+//==============================================================================
+#print-style() {
+    // Utility classes for print layout
+    //
+    // .page-break
+    //   Enforces a page break before an element.
+    //   Usage:
+    //     <div class="page-break"></div>
+    //     ### Heading {.page-break}
+    //
+    // .no-break
+    //   Prevents the element from being split across pages.
+    //
+    // .keep-with-next
+    //   Prevents an element from being separated from the following block.
+    @media print {
+        .pagebreak,
+        .page-break {
+            break-before: page;
+            page-break-before: always;
+            margin-top: 0 !important;
+            margin-block-start: 0 !important;
+
+            // Remove top margin from the first heading after the break
+            + :is(h1, h2, h3, h4, h5, h6) {
+                margin-top: 0.5rem !important;
+                margin-block-start: 0 !important;
+            }
+        }
+
+        .nobreak,
+        .no-break {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        .keep-with-next {
+            break-after: avoid;
+            page-break-after: avoid;
+        }
+
+        // === Avoid page breaks ===
+        // 粒度收到行级：ul/ol/table 的容器级 avoid 会把长列表/长表整块推去
+        // 下一页留大片空白——改为 li/tr 行内不断 + thead 跨页重复表头 +
+        // orphans/widows；容器级 avoid 只留给不可拆整体的
+        // pre/figure/blockquote/callout。
+        pre,
+        figure,
+        blockquote,
+        .callout,
+        img {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        li,
+        tr {
+            break-inside: avoid;
+            page-break-inside: avoid;
+        }
+
+        // 跨页表格每页重复表头
+        thead {
+            display: table-header-group;
+        }
+
+        p,
+        li {
+            orphans: 3;
+            widows: 3;
+        }
+
+        // Avoid page breaks after headings
+        :is(h1, h2, h3, h4, h5, h6) {
+            break-inside: avoid;
+            break-after: avoid;
+            page-break-after: avoid;
+        }
+
+        // === Expand collapsed <details> for print ===
+        // Chromium ≥97 把折叠 details 的非 summary 子树渲染为
+        // content-visibility: hidden（保留 find-in-page 可搜）；新实现走
+        // ::details-content 槽——两条都写兼容新旧内核，作者级规则可覆盖 UA。
+        details:not([open]) > :not(summary),
+        details:not([open])::details-content {
+            content-visibility: visible;
+        }
+
+        // === Define Print Style ===
+        // Override theme variables
+        :root {
+            --bg-primary: transparent;
+            --bg-secondary: #f5f5f5;
+            --text-normal: #000;
+
+            --border-divider: #737373;
+            --border-button: #525252;
+            --table-border: #737373;
+            --table-border-strong: #000;
+
+            --code-fg: #000;
+            --code-font-size: 12px;
+        }
+
+        body {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .markdown-preview.markdown-preview {
+            padding: 2pt !important;
+
+            #dividers(false);
+        }
+    }
+
+    // `size: A4` wins only when Puppeteer runs with preferCSSPageSize: true;
+    // 浏览器/导出 HTML 的打印对话框仍可由用户覆盖。
+    @page {
+        size: A4;
+        margin: 20mm 16mm 18mm;
+
+        // 页码走 margin-box 计数器（不加 string-set 动态页眉——Chromium 不支持）
+        @bottom-center {
+            content: counter(page) " / " counter(pages);
+            font-size: 9pt;
+            color: #737373;
+        }
+    }
+}
+
+//==============================================================================
+// Syntax Colors
+//==============================================================================
+#apply-syntax-colors() {
+    .reset-style();
+    .set-custom-style();
+
+    // Reset the style introduced by the extension
+    .reset-style() {
+        pre,
+        code {
+            &[class*="language-"] {
+                color: var(--code-fg);
+            }
+            // 后代全是 Prism 的 .token/行号 span——标签过滤比 * 省掉每个元素
+            // 的祖先链检查；非 span 元素本来也没有主题样式需要复位。
+            &[class*="language-"] span {
+                background-color: inherit;
+                color: inherit;
+                font-weight: inherit;
+                font-size: inherit;
+            }
+        }
+    }
+
+    .set-custom-style() {
+        pre[class*="language-"],
+        code[class*="language-"] {
+            .token.operator,
+            .token.attr-equals {
+                color: var(--code-operator);
+                background: none;
+            }
+            .token.entity {
+                color: var(--code-operator);
+                background: none;
+            }
+            .token.punctuation {
+                color: var(--code-fg);
+                background: none;
+            }
+            .token.comment,
+            .token.doctype,
+            .token.triple-quoted-string,
+            .token.cdata,
+            .token.prolog {
+                color: var(--code-comment);
+                font-style: italic;
+            }
+            .token.url {
+                color: var(--code-blue);
+                background: none;
+            }
+            .token.content {
+                color: var(--code-fg);
+                background: none;
+            }
+            .token.namespace {
+                color: var(--code-namespace);
+                font-weight: var(--code-font-weight-bold);
+                opacity: 0.7;
+            }
+            .token.class-name {
+                color: var(--code-class);
+                font-weight: var(--code-font-weight-bold);
+                text-decoration: underline;
+            }
+            .token.macro,
+            .token.macro > .token.directive.keyword {
+                color: var(--code-directive);
+            }
+            .token.important,
+            .token.regex {
+                color: var(--code-directive);
+                font-weight: var(--code-font-weight-bold);
+            }
+            .token.parameter,
+            .token.variable {
+                color: var(--code-function);
+                font-style: italic;
+            }
+            .token.keyword {
+                color: var(--code-keyword);
+                font-weight: var(--code-font-weight-bold);
+            }
+            .token.function,
+            .token.function-name {
+                color: var(--code-function);
+                font-weight: var(--code-font-weight-bold);
+            }
+            .token.builtin,
+            .token.boolean {
+                color: var(--code-builtin);
+                font-weight: var(--code-font-weight-bold);
+                text-decoration: none;
+            }
+            .token.decorator {
+                color: var(--code-decorator);
+                font-style: italic;
+            }
+            .token.constant {
+                color: var(--code-constant);
+            }
+            .token.number {
+                color: var(--code-number);
+            }
+            .token.string,
+            .token.char {
+                color: var(--code-string);
+                font-style: normal;
+            }
+            .token.tag,
+            .token.tag > .token.punctuation {
+                color: var(--code-tag-name);
+                font-weight: var(--code-font-weight-bold);
+            }
+            .token.attr-name {
+                color: var(--code-attr-name);
+                font-style: italic;
+            }
+            .token.attr-value,
+            .token.attr-value > .token.punctuation {
+                color: var(--code-attr-value);
+                font-weight: var(--code-font-weight-bold);
+            }
+            // Markdown
+            .token.bold,
+            .token.bold *,
+            .token.title {
+                font-weight: 700;
+            }
+        }
+    }
+}

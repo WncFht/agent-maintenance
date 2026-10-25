@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "files": {
+    "README.md": "e8869afde1787e66af7deff025904ba56239891595b0483df98dc206ad2edaf0",
+    "config.js": "0126ffb1dcfbd1c3a91561330046b460e1f1e650f911d4b319d962d0a6309151",
+    "head.html": "41f9dc2810d600e37b0fdff77a52d822b78b2dacfbbaef121c11bc7753ab6e14",
+    "parser.js": "de379cf07345a89ea8c271e23fc279cbfee996d4096cf0c31224c80f8be032f5",
+    "pseudocode-runtime.js": "1c81768523fdd85f079114d6fdc1edc76c8dbc2266f402804f98395e2ef95093",
+    "style.less": "c6e9f8b8e980b6e09777f600b9701ae3026e76fa6a44ad532b2c1a84de98d35c",
+    "theme-toggle.js": "a8a6a35674a0241a5dcc37bd380ce293463db8bfd37d0342e1d23915435c5da6",
+    "scripts/build-parser.cjs": "5aa2fa55e2350dd10b48742a40830417058772b1df04688f81d32a83c91ee281",
+    "scripts/check-pseudocode.cjs": "99b4d1a49364b7055885603759dc318cf681635cfd95a4860f7cd6cbe141277a",
+    "scripts/patch-mpe-globalcss-dedupe.cjs": "7ffcc62b092f100fe3e2507c372d95395e3dd6321941b4de7f1496a1664da3c5",
+    "tests/README.md": "a4925d1c21c9de8446db8d75ab7acc6a0f5aaf567836b9001ba79815218a90e8",
+    "tests/bench-profile.cjs": "e0af1521acdd2beae664bcce4a8261507da0a6040887326c4e696c5383432835",
+    "tests/check-pseudocode.test.cjs": "886fe248c141620cfadc3f20cb0ac93ba5fdf9b92d1007f73b4181a1bd4c5392",
+    "tests/parser-build.test.cjs": "ecf502a066d4ece4d0df7e02f023b0e518603770fa3882d920ab7c91bebfc645",
+    "tests/parser-prerender.test.cjs": "585c7df9ad08d0e7bbb19194bd2ad600c109cbe68f8c2788a2c46ea17a411244",
+    "tests/parser-quickjs.test.cjs": "55c632e5013e59f14b4aabbf978cfe908acc43da9663caf0c1c1fa01793a429e",
+    "tests/parser.test.cjs": "81f122ecc9e43d94c22e59d9363777f0adab3bb60675be47f3c7e9a6fb28b24e",
+    "tests/pseudocode-options.test.cjs": "5bbba3a75c02d14151549a28b9bfe84d75366989290a8d1da0f7b9a25399fab7",
+    "tests/pseudocode-runtime.test.cjs": "6761bdf2be25ac35ed171719e53d36a144ccbd2a8564cd8fd8de4b2c996352c9",
+    "tests/pseudocode-source.test.cjs": "5662b42cd12f8a47798b5a350cb54aa904d8d095574b385d2272a40c2d34fbb5",
+    "tests/theme-toggle.test.cjs": "70a8fccd836af3019cf21242c39c965cf70d9590d529cb444c90bb2cb13675dc",
+    "tests/vendor-integrity.test.cjs": "a7d748657b5a22250ff862a93751858d8326afd68a7a4ba679bd1868d795abf5",
+    "tests/fixtures/kitchen-sink.md": "ec35bbe66643b40362ec5351ba69fe1791db13b109149360df44285af83586ff",
+    "vendor/README.md": "e468e24b2e0ff10401ef377a18c6bed540a09d95d5c61bb753d66a3e9009b36f",
+    "vendor/katex-0.16.47.LICENSE": "766ccc1f306c885aa45542a9846bbd0a505b27a0374f146778171c2254ce18e3",
+    "vendor/katex-0.16.47.min.js": "a29d2961d3146de5949d78ac7c1a9d93ae54955bad22a6db4fbe836e88e8bf48",
+    "vendor/pseudocode-2.4.1.LICENSE": "4400deeefb20426bb20531303e02805f0f0678747b39cdbef5bbdf6a8aef8106",
+    "vendor/pseudocode-2.4.1.min.js": "695903c6acb3ac1f84c54b0e63d3ddc9e9640e19ff0dfae35aed3c695a6a365a"
+  }
+}

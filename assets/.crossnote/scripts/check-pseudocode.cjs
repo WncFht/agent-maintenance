@@ -20,12 +20,8 @@ const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
 
-// This script reaches each repo through a .crossnote/scripts directory
-// symlink — node realpaths the main module, so __dirname lands inside the
-// canonical source (~/.agents/...) no matter which repo invoked it. The lint
-// target must therefore come from the invocation context, not the script
-// location: the git repo containing cwd (git hooks always run from the
-// toplevel), or cwd itself outside any repo.
+// Check the Git repository containing cwd, not the deployment/source directory.
+// This works with independently deployed copies and the old linked entry.
 const VAULT_ROOT = (() => {
   try {
     return execFileSync("git", ["rev-parse", "--show-toplevel"], {

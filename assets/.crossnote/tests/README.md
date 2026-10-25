@@ -1,27 +1,20 @@
-# Pseudocode runtime tests
+# Crossnote 验证
 
-Run the regression suite from the vault root:
+在维护仓中安装锁定依赖后运行 `npm run test:preview`。生成器漂移检查覆盖全部根部产物，测试不会自动重建来掩盖漂移。首次准备浏览器使用 `npx playwright install chromium`；Linux CI 使用 `--with-deps`。
 
-```sh
-node --test .crossnote/tests/*.test.cjs
-```
+| 验证面 | 行为证据 |
+| --- | --- |
+| 构建 | `build.cjs --check`；同一伪代码纯逻辑进入 QuickJS 与浏览器 |
+| 伪代码 | 真实 QuickJS、选项、编号、错误恢复、动态内容、vendor 校验与源码检查 |
+| 外观 | 八个选择、旧状态迁移、菜单关闭、重复注入 |
+| Mermaid | 11.15.0／12.2.0；五类图、六纸张、系统／编辑器、打印；颜色变化不修改 SVG 或布局 |
+| 作者样式 | 节点显式色、原生配色退出、空心 UML／ER 标记；数据图保持原色 |
+| 独立导出 | SVG／HTML 标签、网页字体嵌入、SVG 和 PNG、错误资源、查看器与打印隐藏 |
+| 部署 | 只读检查、无变化重跑、旧副本／链接迁移、定制冲突、并发锁、源漂移和写入失败回滚 |
+| 宿主输出 | Crossnote 0.9.42 的真实解析、完整离线 HTML 与 Chromium PDF；预渲染伪代码保留 |
 
-Browser-level tests (`pseudocode-runtime.test.cjs`) use an installed `playwright` package when available, falling back to the locally installed Google Chrome when the Playwright-managed Chromium build is missing.
+浏览器测试按实际计算颜色、文本与节点几何、独立文档和下载路径检查；不以“渲染未报错”替代结果。图表着色只支持声明的五类，不将这些样例外推到全部 Mermaid 语法。
 
-Pure-Node tests (`parser.test.cjs`, `parser-prerender.test.cjs`, `pseudocode-options.test.cjs`, `pseudocode-source.test.cjs`, `check-pseudocode.test.cjs`, `parser-build.test.cjs`, `vendor-integrity.test.cjs`) need no browser.
-`parser-prerender.test.cjs` evaluates the generated `parser.js` in a bare `vm` context — mirroring crossnote's QuickJS sandbox — and feeds synthetic `<pre data-role="codeBlock">` HTML through `onDidParseMarkdown`. `pseudocode-source.test.cjs` runs the same check as `.crossnote/scripts/check-pseudocode.cjs`, which is also wired into the git pre-commit hook for staged `.md` files. `vendor-integrity.test.cjs` verifies the SHA-256 checksums documented in `vendor/README.md`.
+真实编辑器验收使用部署后的项目，信任工作区，启用预览脚本，设置 `previewTheme: none.css` 与 `previewColorScheme: systemColorScheme`。打开包含五类图和伪代码的 Markdown，核对菜单切换、更新后的工具栏、放大／Esc、SVG／PNG 下载、原生配色退出和打印。浏览器单元测试与 Crossnote HTML 输出不替代 webview 的资源与 CSP 检查。
 
-## Generated parser.js
-
-`parser.js` embeds the vendored KaTeX + pseudocode.js builds and the PURE CORE slice of `pseudocode-runtime.js` between its `GENERATED` markers —crossnote's sandbox has no `require`/`fs`, so the code must be inlined.
-After changing `vendor/*` or the marked slice, regenerate with:
-
-```sh
-node .crossnote/scripts/build-parser.cjs
-```
-
-`parser-build.test.cjs` (and the pre-commit hook) run the same command with `--check` and fail when the generated section is stale.
-
-`parser-quickjs.test.cjs` is optional: it evaluates `parser.js` inside a real QuickJS WASM runtime — the engine crossnote sandboxes hooks in — and skips unless `quickjs-emscripten` is resolvable (`npm install --no-save quickjs-emscripten`).
-
-`bench-profile.cjs` is not a test — it profiles the hooks: per-render timings through the real QuickJS string-marshal boundary (and a `vm` baseline), cold-vs-memoized pseudocode prerender, eval/init cost, and end-to-end `parseMD` via the `crossnote` package when resolvable. Run `node tests/bench-profile.cjs`; deps come from `--deps=<dir>`/`$BENCH_DEPS` (needs `quickjs-emscripten-core`, `@jitl/quickjs-singlefile-cjs-release-sync`; optional `markdown-it`, `crossnote`), corpus via `--corpus=a.md,b.md`, plus `--repeat=N`, `--no-e2e`, `--json`.
+`bench-profile.cjs` 保留伪代码钩子性能分析入口，不是发布门控；其 `--deps`／`BENCH_DEPS` 指向分析环境，`--corpus` 提供文档，`--repeat` 控制重复次数。生成器和主题结构变化后，历史性能数值不能自动视为当前实现的证据。

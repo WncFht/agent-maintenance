@@ -1,0 +1,21 @@
+{
+  "katexConfig": {
+    "macros": {}
+  },
+  "mathjaxConfig": {
+    "tex": {},
+    "options": {
+      "enableEnrichment": false
+    },
+    "loader": {}
+  },
+  "mermaidConfig": {
+    "startOnLoad": false,
+    "look": "classic",
+    "flowchart": {
+      "nodeSpacing": 36,
+      "rankSpacing": 48,
+      "padding": 14
+    }
+  }
+}

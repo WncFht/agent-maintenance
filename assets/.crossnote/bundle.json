@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "files": {
+    "README.md": "2f070ba3effbf06df8aad48be04a34bbc491d4dcb3f30f4990ef53043269c5b1",
+    "config.js": "01b08c990f86cc8b29256ddf01a9d431ee30297376bd9f32da0184c2226e6ed1",
+    "diagram-actions.js": "2d63233ce810b9a36fae7e4d4d183ff14e366f9995c947d20861b83883ca76f2",
+    "head.html": "75455ffd9e1fe063e2f5ae0f61b53211a871f4a169791cdb8f755806dfb7014f",
+    "parser.js": "2988f92105abfc1092dd9fcf017fedcbe155ea03e80bfd3717be3cb132808e1c",
+    "preview.js": "fa5c01e911aa766f36ce3842be448f021e36afb54c3ae5f158c1211aea3e83c6",
+    "pseudocode-runtime.js": "895f8cd1481cb86eafb5f86f103edd38c054c283f9d664feac2de35f41e9b610",
+    "scripts/check-pseudocode.cjs": "fbddde86e3530205a268c79a4bf3094f9ab4cfd7af77f1d4c132659726e640fd",
+    "style.less": "df4ea848cdb75b1f18679d99da2696bb45463c23f88a3bf933f6d38ce669c459",
+    "theme-toggle.js": "d8e262c3f93ef39c8cf8c24612ef2d22ccaeed72e1a6f3800afac63433b72596",
+    "vendor/README.md": "e468e24b2e0ff10401ef377a18c6bed540a09d95d5c61bb753d66a3e9009b36f",
+    "vendor/katex-0.16.47.LICENSE": "766ccc1f306c885aa45542a9846bbd0a505b27a0374f146778171c2254ce18e3",
+    "vendor/katex-0.16.47.min.js": "a29d2961d3146de5949d78ac7c1a9d93ae54955bad22a6db4fbe836e88e8bf48",
+    "vendor/pseudocode-2.4.1.LICENSE": "4400deeefb20426bb20531303e02805f0f0678747b39cdbef5bbdf6a8aef8106",
+    "vendor/pseudocode-2.4.1.min.js": "695903c6acb3ac1f84c54b0e63d3ddc9e9640e19ff0dfae35aed3c695a6a365a"
+  }
+}

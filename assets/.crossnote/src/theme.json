@@ -1,0 +1,51 @@
+{
+  "default": "paper",
+  "dark": "dark",
+  "documentFont": "serif",
+  "diagramFont": "\"DejaVu Sans\", \"Segoe UI\", \"Noto Sans CJK SC\", \"WenQuanYi Zen Hei\", \"PingFang SC\", \"Microsoft YaHei\", sans-serif",
+  "diagramFontSize": "16px",
+  "slots": [
+    {
+      "id": "paper",
+      "label": "暖纸",
+      "mode": "light",
+      "bg": "#f5f1e8",
+      "fg": "#211b12"
+    },
+    {
+      "id": "sepia",
+      "label": "羊皮纸",
+      "mode": "light",
+      "bg": "#f4ecd8",
+      "fg": "#5b4636"
+    },
+    {
+      "id": "snow",
+      "label": "雪白",
+      "mode": "light",
+      "bg": "#eceff4",
+      "fg": "#3b4252"
+    },
+    {
+      "id": "dark",
+      "label": "暖黑",
+      "mode": "dark",
+      "bg": "#17140f",
+      "fg": "#e6ddcb"
+    },
+    {
+      "id": "onedark",
+      "label": "One Dark",
+      "mode": "dark",
+      "bg": "#282c34",
+      "fg": "#abb2bf"
+    },
+    {
+      "id": "black",
+      "label": "纯黑",
+      "mode": "dark",
+      "bg": "#000000",
+      "fg": "#ffffff"
+    }
+  ]
+}

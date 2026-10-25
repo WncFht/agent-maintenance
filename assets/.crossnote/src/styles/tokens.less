@@ -1,0 +1,104 @@
+// Light slot derivation — texlate ratios: paper-2 ≈ 5% fg, panel = 80%
+// white, line ≈ 11% fg, line-strong ≈ 21% fg; faint/bold interpolate beyond
+// texlate's two border tiers (they only have line + line-strong). Text
+// tiers deviate from texlate's ink-2 = 66% / ink-3 = 56%: measured contrast
+// fell below WCAG (sepia slot muted 3.31, faint 2.67), so muted = 78% fg,
+// faint = 63% fg.
+#paper-slot-light(@bg, @fg) {
+    // === Backgrounds ===
+    --bg-primary: @bg;
+    --bg-secondary: color-mix(in srgb, @bg 95%, @fg);
+    --bg-panel: color-mix(in srgb, #ffffff 80%, @bg);
+
+    // === Borders ===
+    --border-faint: color-mix(in srgb, @bg 94%, @fg);
+    --border-muted: color-mix(in srgb, @bg 89%, @fg);
+    --border-normal: color-mix(in srgb, @bg 79%, @fg);
+    --border-bold: color-mix(in srgb, @bg 66%, @fg);
+    --border-divider: var(--border-muted);
+    --border-button: var(--border-bold);
+
+    // === Shadow ===
+    // 浮层投影用固定黑而非 @fg：暗槽墨色浅，投影必须仍是黑才压得住
+    --shadow-pop: color-mix(in srgb, #000 25%, transparent);
+
+    // === Table ===
+    --table-border: var(--border-normal);
+    --table-border-strong: var(--border-bold);
+    --table-header-bg: color-mix(in srgb, @fg 8%, transparent);
+    --table-bg: inherit;
+    --table-bg-alt: inherit;
+    --table-hover-bg: color-mix(in srgb, var(--color-yellow) 30%, transparent);
+
+    // === Text ===
+    --text-normal: @fg;
+    --text-muted: color-mix(in srgb, @fg 78%, @bg);
+    --text-faint: color-mix(in srgb, @fg 63%, @bg);
+
+    --selection: color-mix(in srgb, var(--color-red) 18%, transparent);
+    // yellow 加深后降到 35%，补偿 sepia 槽 mark 内文字对比度回退
+    --text-mark-bg: color-mix(in srgb, var(--color-yellow) 35%, transparent);
+
+    #accents-light();
+
+    // === Code ===
+    --code-inline-bg: color-mix(in srgb, @fg 8%, transparent);
+    // 90%：与 muted 78% 拉开层次（kbd 复用此变量，无独立 --kbd-fg）
+    --code-inline-fg: color-mix(in srgb, @fg 90%, @bg);
+    --code-bg: var(--bg-secondary);
+    --code-fg: var(--text-normal);
+    --code-gutter-fg: var(--text-faint);
+    --code-on-tint-bg: color-mix(in srgb, @fg 8%, transparent);
+    #code-syntax-light();
+}
+
+// Dark slot derivation — texlate ratios: paper-2 ≈ 4% fg, panel ≈ 7% fg,
+// line ≈ 17% fg, line-strong ≈ 26% fg. Text tiers deviate from texlate's
+// ink-2 = 70% / ink-3 = 57% for the same measured-contrast reason as light:
+// muted = 78% fg, faint = 63% fg.
+#paper-slot-dark(@bg, @fg) {
+    --bg-primary: @bg;
+    --bg-secondary: color-mix(in srgb, @bg 96%, @fg);
+    --bg-panel: color-mix(in srgb, @bg 93%, @fg);
+
+    --border-faint: color-mix(in srgb, @bg 91%, @fg);
+    --border-muted: color-mix(in srgb, @bg 83%, @fg);
+    --border-normal: color-mix(in srgb, @bg 74%, @fg);
+    --border-bold: color-mix(in srgb, @bg 62%, @fg);
+    --border-divider: var(--border-muted);
+    --border-button: var(--border-bold);
+
+    // === Shadow ===
+    --shadow-pop: color-mix(in srgb, #000 60%, transparent);
+
+    --table-border: var(--border-normal);
+    --table-border-strong: var(--border-bold);
+    --table-header-bg: color-mix(in srgb, @fg 10%, transparent);
+    --table-bg: inherit;
+    --table-bg-alt: inherit;
+    --table-hover-bg: color-mix(in srgb, var(--color-yellow) 18%, transparent);
+
+    --text-normal: @fg;
+    --text-muted: color-mix(in srgb, @fg 78%, @bg);
+    --text-faint: color-mix(in srgb, @fg 63%, @bg);
+
+    --selection: color-mix(in srgb, var(--color-red) 18%, transparent);
+    // 35% → 20%：onedark 深槽 mark 内文字对比度达标
+    --text-mark-bg: color-mix(in srgb, var(--color-yellow) 20%, transparent);
+
+    #accents-dark();
+
+    --code-inline-bg: color-mix(in srgb, @fg 10%, transparent);
+    // 90%：与 muted 78% 拉开层次（kbd 复用此变量）
+    --code-inline-fg: color-mix(in srgb, @fg 90%, @bg);
+    --code-bg: var(--bg-secondary);
+    --code-fg: var(--text-normal);
+    --code-gutter-fg: var(--text-faint);
+    --code-on-tint-bg: color-mix(in srgb, @fg 8%, transparent);
+    #code-syntax-dark();
+
+    // Callout body text uses accent + this lightness shift (._callout-colors).
+    // Light slots darken by default for contrast on paper; dark accents are
+    // already lifted but callout 正文/title 对比度仍只有 4.2-4.5，+16 提到 ≥4.54。
+    --callout-text-shift: 16;
+}
