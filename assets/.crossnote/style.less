@@ -2491,6 +2491,12 @@ body[for="html-export"] .markdown-preview:not(:where(.mermaid *, .crossnote-pseu
 .mermaid > svg {
   vertical-align: ~"middle";
 }
+.mermaid:has(> .xnote-diagram-tools) > svg {
+  cursor: ~"zoom-in";
+}
+.mermaid > svg :is(a, .clickable) {
+  cursor: ~"pointer";
+}
 .xnote-diagram-tools {
   display: ~"flex";
   justify-content: ~"flex-end";

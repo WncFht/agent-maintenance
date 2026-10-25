@@ -595,7 +595,7 @@ function openViewer(result, returnFocus) {
     dialog.setAttribute("aria-label", "图表查看器");
     dialog.innerHTML =
         '<div class="xnote-diagram-controls"><button type="button" data-view="out" aria-label="缩小">−</button><output class="xnote-diagram-scale" aria-label="缩放比例"></output><button type="button" data-view="in" aria-label="放大">+</button><button type="button" data-view="fit">全图</button><button type="button" data-view="actual">100%</button><button type="button" data-view="close">关闭</button></div>' +
-        '<div class="xnote-diagram-hint">双指移动 · 捏合缩放 · 双击放大 · 拖动平移 · 0 全图</div>' +
+        '<div class="xnote-diagram-hint">双指移动 · 捏合缩放 · 拖动平移 · 0 全图</div>' +
         '<div class="xnote-diagram-viewport" tabindex="0" role="region" aria-label="图表画布，双指移动，捏合缩放；方向键移动，加减号缩放，0 查看全图"><div class="xnote-diagram-scene"></div><div class="xnote-diagram-selection" hidden></div></div>' +
         '<div class="xnote-diagram-selection-tools" hidden><span role="status" aria-live="polite"></span><button type="button" data-view="selection">定位选中项</button><button type="button" data-view="copy">复制文字</button><button type="button" data-view="clear">清除选择</button></div>';
     var viewport = dialog.querySelector(".xnote-diagram-viewport");
@@ -913,8 +913,7 @@ function openViewer(result, returnFocus) {
             if (!event.composedPath().includes(viewport) || event.button !== 0)
                 return;
             consume(event);
-            wheel = null;
-            zoomAt(state.k * 1.25, local(event));
+            // Keep MPE's source-navigation double-click out of the modal.
         },
         { capture: true },
     );
@@ -1141,9 +1140,48 @@ function openViewer(result, returnFocus) {
 
 
     var pending = new WeakSet();
+    var sourcePress = null;
+    function sourceDiagram(target) {
+        if (!(target instanceof Element)) return null;
+        var container = target.closest(".mermaid");
+        var svg = container && container.querySelector(":scope > svg");
+        return svg &&
+            svg.contains(target) &&
+            !container.closest(".hidden-preview")
+            ? container
+            : null;
+    }
     async function onAction(event) {
         var button = event.target.closest("button[data-xnote-diagram-action]");
-        if (!button) return;
+        if (!button) {
+            var source = sourceDiagram(event.target);
+            if (
+                !source ||
+                event.defaultPrevented ||
+                event.button > 0 ||
+                event.ctrlKey ||
+                event.metaKey ||
+                event.altKey ||
+                event.shiftKey
+            )
+                return;
+            if (
+                event.target.closest(
+                    "a, button, input, textarea, select, [contenteditable], .clickable",
+                )
+            )
+                return;
+            var dragged =
+                event.detail > 0 &&
+                sourcePress &&
+                sourcePress.container === source &&
+                sourcePress.moved;
+            sourcePress = null;
+            var selection = window.getSelection();
+            if (dragged || (selection && !selection.isCollapsed)) return;
+            button = source.querySelector('[data-xnote-diagram-action="view"]');
+            if (!button) return;
+        }
         var container = button.closest(".mermaid");
         if (!container || pending.has(container)) return;
         pending.add(container);
@@ -1222,6 +1260,46 @@ function openViewer(result, returnFocus) {
         mount();
         observer.observe(document.body, { childList: true, subtree: true });
         document.addEventListener("click", onAction);
+        document.addEventListener(
+            "pointerdown",
+            function (event) {
+                var container = sourceDiagram(event.target);
+                sourcePress =
+                    container && event.button === 0
+                        ? {
+                              container: container,
+                              id: event.pointerId,
+                              x: event.clientX,
+                              y: event.clientY,
+                              moved: false,
+                          }
+                        : null;
+            },
+            true,
+        );
+        function trackSourceDrag(event) {
+            if (
+                sourcePress &&
+                sourcePress.id === event.pointerId &&
+                Math.hypot(
+                    event.clientX - sourcePress.x,
+                    event.clientY - sourcePress.y,
+                ) >= 4
+            )
+                sourcePress.moved = true;
+        }
+        document.addEventListener("pointermove", trackSourceDrag, true);
+        document.addEventListener("pointerup", trackSourceDrag, true);
+        document.addEventListener(
+            "pointercancel",
+            function () {
+                sourcePress = null;
+            },
+            true,
+        );
+        window.addEventListener("blur", function () {
+            sourcePress = null;
+        });
     }
     window.__xnoteDiagramTools = { snapshot: snapshot, png: png, mount: mount };
     if (document.body) boot();

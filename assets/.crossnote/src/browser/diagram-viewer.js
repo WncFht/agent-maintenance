@@ -87,7 +87,7 @@ function openViewer(result, returnFocus) {
     dialog.setAttribute("aria-label", "图表查看器");
     dialog.innerHTML =
         '<div class="xnote-diagram-controls"><button type="button" data-view="out" aria-label="缩小">−</button><output class="xnote-diagram-scale" aria-label="缩放比例"></output><button type="button" data-view="in" aria-label="放大">+</button><button type="button" data-view="fit">全图</button><button type="button" data-view="actual">100%</button><button type="button" data-view="close">关闭</button></div>' +
-        '<div class="xnote-diagram-hint">双指移动 · 捏合缩放 · 双击放大 · 拖动平移 · 0 全图</div>' +
+        '<div class="xnote-diagram-hint">双指移动 · 捏合缩放 · 拖动平移 · 0 全图</div>' +
         '<div class="xnote-diagram-viewport" tabindex="0" role="region" aria-label="图表画布，双指移动，捏合缩放；方向键移动，加减号缩放，0 查看全图"><div class="xnote-diagram-scene"></div><div class="xnote-diagram-selection" hidden></div></div>' +
         '<div class="xnote-diagram-selection-tools" hidden><span role="status" aria-live="polite"></span><button type="button" data-view="selection">定位选中项</button><button type="button" data-view="copy">复制文字</button><button type="button" data-view="clear">清除选择</button></div>';
     var viewport = dialog.querySelector(".xnote-diagram-viewport");
@@ -405,8 +405,7 @@ function openViewer(result, returnFocus) {
             if (!event.composedPath().includes(viewport) || event.button !== 0)
                 return;
             consume(event);
-            wheel = null;
-            zoomAt(state.k * 1.25, local(event));
+            // Keep MPE's source-navigation double-click out of the modal.
         },
         { capture: true },
     );

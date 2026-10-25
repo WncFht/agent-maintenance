@@ -508,9 +508,48 @@
     /* @xnote diagram-viewer */
 
     var pending = new WeakSet();
+    var sourcePress = null;
+    function sourceDiagram(target) {
+        if (!(target instanceof Element)) return null;
+        var container = target.closest(".mermaid");
+        var svg = container && container.querySelector(":scope > svg");
+        return svg &&
+            svg.contains(target) &&
+            !container.closest(".hidden-preview")
+            ? container
+            : null;
+    }
     async function onAction(event) {
         var button = event.target.closest("button[data-xnote-diagram-action]");
-        if (!button) return;
+        if (!button) {
+            var source = sourceDiagram(event.target);
+            if (
+                !source ||
+                event.defaultPrevented ||
+                event.button > 0 ||
+                event.ctrlKey ||
+                event.metaKey ||
+                event.altKey ||
+                event.shiftKey
+            )
+                return;
+            if (
+                event.target.closest(
+                    "a, button, input, textarea, select, [contenteditable], .clickable",
+                )
+            )
+                return;
+            var dragged =
+                event.detail > 0 &&
+                sourcePress &&
+                sourcePress.container === source &&
+                sourcePress.moved;
+            sourcePress = null;
+            var selection = window.getSelection();
+            if (dragged || (selection && !selection.isCollapsed)) return;
+            button = source.querySelector('[data-xnote-diagram-action="view"]');
+            if (!button) return;
+        }
         var container = button.closest(".mermaid");
         if (!container || pending.has(container)) return;
         pending.add(container);
@@ -589,6 +628,46 @@
         mount();
         observer.observe(document.body, { childList: true, subtree: true });
         document.addEventListener("click", onAction);
+        document.addEventListener(
+            "pointerdown",
+            function (event) {
+                var container = sourceDiagram(event.target);
+                sourcePress =
+                    container && event.button === 0
+                        ? {
+                              container: container,
+                              id: event.pointerId,
+                              x: event.clientX,
+                              y: event.clientY,
+                              moved: false,
+                          }
+                        : null;
+            },
+            true,
+        );
+        function trackSourceDrag(event) {
+            if (
+                sourcePress &&
+                sourcePress.id === event.pointerId &&
+                Math.hypot(
+                    event.clientX - sourcePress.x,
+                    event.clientY - sourcePress.y,
+                ) >= 4
+            )
+                sourcePress.moved = true;
+        }
+        document.addEventListener("pointermove", trackSourceDrag, true);
+        document.addEventListener("pointerup", trackSourceDrag, true);
+        document.addEventListener(
+            "pointercancel",
+            function () {
+                sourcePress = null;
+            },
+            true,
+        );
+        window.addEventListener("blur", function () {
+            sourcePress = null;
+        });
     }
     window.__xnoteDiagramTools = { snapshot: snapshot, png: png, mount: mount };
     if (document.body) boot();

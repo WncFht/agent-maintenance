@@ -742,7 +742,7 @@ test("locating a selection always centers it at 100%, independent of its size or
     }
 });
 
-test("double-click zooms gently around its pointer and never reaches the host document handler", async () => {
+test("double-click in the viewer neither zooms nor reaches host source navigation", async () => {
     const p = await pageFor();
     try {
         await p.evaluate(() => {
@@ -753,38 +753,17 @@ test("double-click zooms gently around its pointer and never reaches the host do
                 true,
             );
         });
-        const node = p.locator("[data-xnote-pick]").first();
-        const a = await camera(p),
-            r = await node.boundingBox(),
-            v = await p.locator(".xnote-diagram-viewport").boundingBox();
-        const x = Math.floor(r.x + r.width / 2),
-            y = Math.floor(r.y + r.height / 2),
-            q = { x: (x - v.x - a.x) / a.k, y: (y - v.y - a.y) / a.k };
-        await p.mouse.dblclick(x, y);
-        await settled(p);
-        const b = await camera(p);
-        closeTo(b.k / a.k, 1.25, 0.0001);
-        closeTo(b.x + q.x * b.k, x - v.x);
-        closeTo(b.y + q.y * b.k, y - v.y);
-        assert.equal(await node.getAttribute("aria-pressed"), "true");
-        assert.equal(await p.evaluate(() => hostDoubleClicks), 0);
-        await p
-            .locator(".xnote-diagram-viewport")
-            .dispatchEvent("dblclick", {
-                clientX: x,
-                clientY: y,
-                button: 0,
-                detail: 2,
-            });
-        await settled(p);
-        closeTo((await camera(p)).k / b.k, 1.25, 0.0001);
-        const before = await camera(p);
-        await p
-            .locator(".xnote-diagram-hint")
-            .dispatchEvent("dblclick", { button: 0, detail: 2 });
+        const node = p.locator("[data-xnote-pick]").first(),
+            before = await camera(p);
+        await node.dblclick();
         await settled(p);
         assert.deepEqual(await camera(p), before);
-        assert.equal(await p.evaluate(() => hostDoubleClicks), 1);
+        assert.equal(await node.getAttribute("aria-pressed"), "true");
+        assert.equal(await p.evaluate(() => hostDoubleClicks), 0);
+        assert.doesNotMatch(
+            await p.locator(".xnote-diagram-hint").textContent(),
+            /双击/,
+        );
     } finally {
         await p.close();
     }
@@ -838,6 +817,66 @@ test("canvas and exported paper share one composited color in light, dark and au
             await p.keyboard.press("Escape");
             await p.waitForSelector("dialog", { state: "detached" });
         }
+    } finally {
+        await p.close();
+    }
+});
+
+test("clicking the document diagram opens the viewer; dragging, links and controls retain their actions", async () => {
+    const p = await pageFor();
+    try {
+        await p.click('[data-view="close"]');
+        await p.waitForSelector("dialog", { state: "detached" });
+        const node = p.locator(".mermaid > svg g.node").first();
+        const source = await p
+            .locator(".mermaid > svg")
+            .evaluate((e) => e.outerHTML);
+        await node.locator("rect").click();
+        await p.waitForSelector("dialog[open]");
+        assert.equal(
+            await p.locator(".mermaid > svg").evaluate((e) => e.outerHTML),
+            source,
+        );
+        await p.keyboard.press("Escape");
+        await p.waitForSelector("dialog", { state: "detached" });
+        assert.ok(
+            await p
+                .locator('[data-xnote-diagram-action="view"]')
+                .evaluate((e) => e === document.activeElement),
+        );
+        await node.scrollIntoViewIfNeeded();
+        const r = await node.boundingBox();
+        await p.mouse.move(r.x + 10, r.y + 10);
+        await p.mouse.down();
+        await p.mouse.move(r.x + 50, r.y + 15);
+        await p.mouse.up();
+        await settled(p);
+        assert.equal(await p.locator("dialog").count(), 0);
+        await p.evaluate(() => getSelection().removeAllRanges());
+        await node.evaluate((e) => {
+            e.classList.add("clickable");
+            window.authorClicks = 0;
+            e.addEventListener("click", () => authorClicks++);
+        });
+        await node.locator("rect").click();
+        await settled(p);
+        assert.equal(await p.locator("dialog").count(), 0);
+        assert.equal(await p.evaluate(() => authorClicks), 1);
+        await node.evaluate((e) => {
+            e.classList.remove("clickable");
+            const a = document.createElementNS(
+                "http://www.w3.org/2000/svg",
+                "a",
+            );
+            a.setAttribute("href", "#source");
+            e.parentNode.insertBefore(a, e);
+            a.append(e);
+        });
+        await node.locator("rect").click();
+        await settled(p);
+        assert.equal(await p.locator("dialog").count(), 0);
+        await p.locator('[data-xnote-diagram-action="view"]').click();
+        await p.waitForSelector("dialog[open]");
     } finally {
         await p.close();
     }
