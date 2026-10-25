@@ -301,7 +301,7 @@ test("fit follows resize, manual mode preserves its center, and huge diagrams re
     }
 });
 
-test("click selects without repainting the source, drag does not select, and Escape clears then closes", async () => {
+test("click selects without repainting or resizing, drag does not select, and one Escape closes", async () => {
     const p = await pageFor();
     try {
         const source = await p
@@ -310,8 +310,10 @@ test("click selects without repainting the source, drag does not select, and Esc
         const node = p
             .locator(".xnote-diagram-scene [data-xnote-pick]")
             .first();
+        const before = await camera(p);
         await node.click();
         await settled(p);
+        assert.deepEqual(await camera(p), before);
         assert.equal(await node.getAttribute("aria-pressed"), "true");
         assert.ok(await p.locator(".xnote-diagram-selection").isVisible());
         const border = await p
@@ -348,8 +350,7 @@ test("click selects without repainting the source, drag does not select, and Esc
             await p.locator(".mermaid > svg").evaluate((e) => e.outerHTML),
             source,
         );
-        await p.keyboard.press("Escape");
-        assert.ok(await p.locator("dialog").isVisible());
+        await p.click('[data-view="clear"]');
         assert.equal(await node.getAttribute("aria-pressed"), "false");
         const r = await node.boundingBox();
         await p.mouse.move(r.x + 20, r.y + 20);
@@ -357,6 +358,8 @@ test("click selects without repainting the source, drag does not select, and Esc
         await p.mouse.move(r.x + 50, r.y + 30, { steps: 4 });
         await p.mouse.up();
         assert.equal(await node.getAttribute("aria-pressed"), "false");
+        await node.click();
+        assert.equal(await node.getAttribute("aria-pressed"), "true");
         await p.keyboard.press("Escape");
         await p.waitForSelector("dialog", { state: "detached" });
     } finally {
@@ -407,7 +410,7 @@ test("cloned SVG references are isolated, keyboard selection works and unsupport
     } finally {
         await p.close();
     }
-    const other = await pageFor(chart.replace("flowchart-v2", "sequence"));
+    const other = await pageFor(chart.replace("flowchart-v2", "pie"));
     try {
         assert.equal(await other.locator("[data-xnote-pick]").count(), 0);
         await wheel(other, { ctrlKey: true, deltaY: -20 });
@@ -521,6 +524,185 @@ for (const version of ["mermaid11", "mermaid12"])
                     );
             });
             assert.ok(references);
+        } finally {
+            await p.close();
+        }
+    });
+
+test("a free canvas moves beyond every image edge, preserves off-image zoom focus, and fits home", async () => {
+    const p = await pageFor();
+    try {
+        const initial = await camera(p);
+        for (const delta of [-3000, 6000, -3000]) {
+            const before = await camera(p);
+            await wheel(p, { deltaX: delta, deltaY: delta });
+            const after = await camera(p);
+            closeTo(after.x, before.x - delta);
+            closeTo(after.y, before.y - delta);
+            closeTo(after.k, before.k);
+        }
+        await wheel(p, { deltaX: 3000, deltaY: 3000 });
+        const before = await camera(p);
+        const anchor = await wheel(p, { ctrlKey: true, deltaY: -20 });
+        const after = await camera(p);
+        closeTo(
+            after.x + ((anchor.x - before.x) / before.k) * after.k,
+            anchor.x,
+            0.1,
+        );
+        closeTo(
+            after.y + ((anchor.y - before.y) / before.k) * after.k,
+            anchor.y,
+            0.1,
+        );
+        await p.click('[data-view="fit"]');
+        await settled(p);
+        assert.deepEqual(await camera(p), initial);
+    } finally {
+        await p.close();
+    }
+});
+
+test("viewer ships its own layout even with legacy host CSS and body-targeted Escape", async () => {
+    const p = await pageFor();
+    try {
+        await p.addStyleTag({
+            content: `.xnote-diagram-dialog { max-width:1400px; }
+            .xnote-diagram-dialog .xnote-diagram-viewport { height:calc(100% - 3em); overflow:auto; margin-top:1em; }
+            .xnote-diagram-dialog .xnote-diagram-controls { display:flex; gap:0.5em; }`,
+        });
+        await settled(p);
+        const layout = await p.evaluate(() => {
+            const v = document.querySelector(".xnote-diagram-viewport"),
+                s = document.querySelector(".xnote-diagram-scene");
+            v.scrollLeft = 200;
+            v.scrollTop = 200;
+            return {
+                overflow: getComputedStyle(v).overflow,
+                margin: getComputedStyle(v).marginTop,
+                position: getComputedStyle(s).position,
+                scroll: [v.scrollLeft, v.scrollTop],
+            };
+        });
+        assert.equal(layout.overflow, "clip");
+        assert.equal(layout.margin, "0px");
+        assert.equal(layout.position, "absolute");
+        assert.deepEqual(layout.scroll, [0, 0]);
+        await wheel(p, { deltaX: 200, deltaY: 200 });
+        await p.evaluate(() =>
+            document.body.dispatchEvent(
+                new KeyboardEvent("keydown", {
+                    key: "Escape",
+                    bubbles: true,
+                    cancelable: true,
+                }),
+            ),
+        );
+        await p.waitForSelector(".xnote-diagram-dialog", { state: "detached" });
+    } finally {
+        await p.close();
+    }
+});
+
+test("click-only activation selects a node while native cancel exits in one step", async () => {
+    const p = await pageFor();
+    try {
+        await p
+            .locator("[data-xnote-pick]")
+            .first()
+            .dispatchEvent("click", { detail: 1 });
+        assert.equal(
+            await p
+                .locator("[data-xnote-pick]")
+                .first()
+                .getAttribute("aria-pressed"),
+            "true",
+        );
+        await p.locator("dialog").dispatchEvent("cancel", { cancelable: true });
+        await p.waitForSelector("dialog", { state: "detached" });
+    } finally {
+        await p.close();
+    }
+});
+
+for (const version of ["mermaid11", "mermaid12"])
+    test(`${version}: all five diagram types have visible pointer-selectable nodes`, async () => {
+        const fixtures = require("./fixtures/diagrams.json");
+        const p = await browser.newPage({
+            viewport: { width: 1100, height: 850 },
+        });
+        try {
+            await p.setContent(
+                "<style>" +
+                    css +
+                    '</style><main class="markdown-preview"><div class="mermaid"></div></main>',
+            );
+            await p.addScriptTag({
+                path: path.join(
+                    path.dirname(require.resolve(version)),
+                    "mermaid.min.js",
+                ),
+            });
+            await p.addScriptTag({
+                path: path.join(ROOT, "diagram-actions.js"),
+            });
+            for (const [kind, source] of Object.entries(fixtures)) {
+                const config = vm.runInNewContext(
+                    fs.readFileSync(path.join(ROOT, "config.js"), "utf8"),
+                ).mermaidConfig;
+                await p.evaluate(
+                    async ({ kind, source, config }) => {
+                        mermaid.initialize({
+                            ...config,
+                            startOnLoad: false,
+                            htmlLabels: true,
+                        });
+                        document.querySelector(".mermaid").innerHTML = (
+                            await mermaid.render("pick-" + kind, source)
+                        ).svg;
+                        window.__xnoteDiagramTools.mount();
+                    },
+                    { kind, source, config },
+                );
+                try {
+                    await open(p);
+                } catch (error) {
+                    throw new Error(
+                        kind +
+                            ": " +
+                            (await p
+                                .locator(".xnote-diagram-status")
+                                .textContent()),
+                        { cause: error },
+                    );
+                }
+                const nodes = p.locator(
+                    ".xnote-diagram-scene [data-xnote-pick]",
+                );
+                assert.ok((await nodes.count()) > 0, kind);
+                // Click the actual label/shape, not an enclosing g's empty bounding box.
+                const target = nodes
+                    .first()
+                    .locator(".nodeLabel,text.actor,text")
+                    .first();
+                if (await target.count()) await target.click();
+                else await nodes.first().click();
+                await settled(p);
+                const selected = p.locator(
+                    '.xnote-diagram-scene [aria-pressed="true"]',
+                );
+                assert.equal(await selected.count(), 1, kind);
+                assert.ok(
+                    await p.locator(".xnote-diagram-selection").isVisible(),
+                    kind,
+                );
+                const name = await p
+                    .locator('.xnote-diagram-selection-tools [role="status"]')
+                    .textContent();
+                assert.ok(name && name !== "未选中节点", kind);
+                await p.keyboard.press("Escape");
+                await p.waitForSelector("dialog", { state: "detached" });
+            }
         } finally {
             await p.close();
         }

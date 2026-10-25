@@ -1,6 +1,21 @@
 // Included inside diagram-actions' closure; the host still loads one lazy module.
 var viewerSequence = 0;
 var closeViewer = null;
+var viewerCSS = /* @xnote viewer-css */ "";
+
+function selectableNodes(svg) {
+    var selectors = {
+        "flowchart-v2": "g.node",
+        flowchart: "g.node",
+        stateDiagram: "g.node, g.statediagram-cluster",
+        class: "g.node, g.classGroup",
+        classDiagram: "g.node, g.classGroup",
+        er: "g.node, g.entityBox",
+        sequence: "g:has(> rect.actor), g:has(> text.actor)",
+    };
+    var selector = selectors[svg.getAttribute("aria-roledescription")];
+    return selector ? Array.from(svg.querySelectorAll(selector)) : [];
+}
 
 function viewerSvg(result) {
     var parsed = new DOMParser().parseFromString(result.svg, "image/svg+xml");
@@ -64,6 +79,11 @@ function openViewer(result, returnFocus) {
     var dialog = document.createElement("dialog");
     // MPE's CSS zoom synchronizer recognizes .fixed elements.
     dialog.className = "xnote-diagram-dialog fixed";
+    dialog.dataset.xnoteViewer = "";
+    // Load geometry with its controller, not with MPE's independently cached
+    // document stylesheet. The extra scope also overrides legacy viewer rules.
+    var viewerStyle = document.createElement("style");
+    viewerStyle.textContent = viewerCSS;
     dialog.setAttribute("aria-label", "图表查看器");
     dialog.innerHTML =
         '<div class="xnote-diagram-controls"><button type="button" data-view="out" aria-label="缩小">−</button><output class="xnote-diagram-scale" aria-label="缩放比例"></output><button type="button" data-view="in" aria-label="放大">+</button><button type="button" data-view="fit">全图</button><button type="button" data-view="actual">100%</button><button type="button" data-view="close">关闭</button></div>' +
@@ -87,14 +107,12 @@ function openViewer(result, returnFocus) {
     var drag = null,
         space = false,
         physicalControl = false,
-        wheel = null;
+        wheel = null,
+        suppressClick = false;
     var selected = null,
         selectionBounds = null;
     var abort = new AbortController();
-    var nodes =
-        svg.getAttribute("aria-roledescription") === "flowchart-v2"
-            ? Array.from(svg.querySelectorAll("g.node"))
-            : [];
+    var nodes = selectableNodes(svg);
     var labels = new Map();
     nodes.forEach(function (node, index) {
         var label = node.querySelector(".nodeLabel") || node;
@@ -111,6 +129,12 @@ function openViewer(result, returnFocus) {
     });
     if (nodes.length)
         dialog.querySelector(".xnote-diagram-hint").append(" · 单击节点高亮");
+    // Keep this row present: selecting a node must not resize/re-fit the canvas.
+    selectionTools.hidden = !nodes.length;
+    selectionLabel.textContent = "未选中节点";
+    selectionTools.querySelectorAll("button").forEach(function (button) {
+        button.disabled = true;
+    });
     function on(target, type, handler, options) {
         target.addEventListener(
             type,
@@ -130,15 +154,6 @@ function openViewer(result, returnFocus) {
     }
     function boundedScale(k) {
         return Math.max(Math.min(0.1, fitScale() / 4), Math.min(8, k));
-    }
-    function clampAxis(value, size, content) {
-        return content <= size - 48
-            ? (size - content) / 2
-            : Math.min(24, Math.max(size - content - 24, value));
-    }
-    function constrain() {
-        state.x = clampAxis(state.x, width, result.width * state.k);
-        state.y = clampAxis(state.y, height, result.height * state.k);
     }
     function paint() {
         frame = 0;
@@ -192,14 +207,12 @@ function openViewer(result, returnFocus) {
         state.y = point.y - (point.y - state.y) * ratio;
         state.k = k;
         state.mode = "manual";
-        constrain();
         schedule();
     }
     function pan(dx, dy) {
         state.x += dx;
         state.y += dy;
         state.mode = "manual";
-        constrain();
         schedule();
     }
     function local(event) {
@@ -229,7 +242,6 @@ function openViewer(result, returnFocus) {
             state.k = boundedScale(state.k);
             state.x = width / 2 - q.x * state.k;
             state.y = height / 2 - q.y * state.k;
-            constrain();
             schedule();
         }
     }
@@ -273,8 +285,10 @@ function openViewer(result, returnFocus) {
                 item.setAttribute("tabindex", item === node ? "0" : "-1");
             });
             selectionLabel.textContent = labels.get(node);
-        } else selectionLabel.textContent = "";
-        selectionTools.hidden = !node;
+        } else selectionLabel.textContent = "未选中节点";
+        selectionTools.querySelectorAll("button").forEach(function (button) {
+            button.disabled = !node;
+        });
         schedule();
     }
     function focusSelection() {
@@ -290,7 +304,6 @@ function openViewer(result, returnFocus) {
         state.x = width / 2 - (b.x + b.width / 2) * state.k;
         state.y = height / 2 - (b.y + b.height / 2) * state.k;
         state.mode = "manual";
-        constrain();
         schedule();
     }
     function endDrag() {
@@ -372,6 +385,7 @@ function openViewer(result, returnFocus) {
         )
             return;
         event.preventDefault();
+        suppressClick = false;
         wheel = null;
         viewport.focus({ preventScroll: true });
         drag = {
@@ -414,13 +428,16 @@ function openViewer(result, returnFocus) {
                 ) < 4,
             node = drag.candidate;
         endDrag();
+        suppressClick = true;
         if (click) select(node);
     });
     on(viewport, "pointercancel", endDrag);
     on(viewport, "lostpointercapture", endDrag);
     on(viewport, "click", function (event) {
-        if (event.detail === 0 && pick(event.target))
-            select(pick(event.target));
+        // Trackpad/accessibility click-only activation has no pointer candidate.
+        // Pointer capture may retarget a drag's click to the viewport: ignore it.
+        if (event.detail === 0 || !suppressClick) select(pick(event.target));
+        suppressClick = false;
     });
     on(viewport, "focusin", function (event) {
         var node = pick(event.target);
@@ -446,15 +463,12 @@ function openViewer(result, returnFocus) {
         "keydown",
         function (event) {
             if (event.key === "Control") physicalControl = true;
-            if (!dialog.contains(event.target)) return;
-            if (event.key === "Escape") {
+            if (event.key === "Escape" && dialog.open) {
                 consume(event);
-                if (selected) {
-                    select(null);
-                    viewport.focus({ preventScroll: true });
-                } else dialog.close();
+                dialog.close();
                 return;
             }
+            if (!dialog.contains(event.target)) return;
             if (event.ctrlKey || event.metaKey || event.altKey) return;
             var node = pick(event.target);
             if (
@@ -562,8 +576,7 @@ function openViewer(result, returnFocus) {
     });
     on(dialog, "cancel", function (event) {
         event.preventDefault();
-        if (selected) select(null);
-        else dialog.close();
+        dialog.close();
     });
     var resizeObserver = new ResizeObserver(resize);
     var removalObserver = new MutationObserver(function () {
@@ -579,10 +592,12 @@ function openViewer(result, returnFocus) {
         if (frame) cancelAnimationFrame(frame);
         resetInput();
         dialog.remove();
+        viewerStyle.remove();
         if (closeViewer === dispose) closeViewer = null;
         if (returnFocus.isConnected) returnFocus.focus({ preventScroll: true });
     }
     on(dialog, "close", dispose);
+    document.head.appendChild(viewerStyle);
     document.body.appendChild(dialog);
     closeViewer = dispose;
     dialog.showModal();

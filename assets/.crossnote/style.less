@@ -2501,8 +2501,7 @@ body[for="html-export"] .markdown-preview:not(:where(.mermaid *, .crossnote-pseu
   font: ~"inherit";
   font-size: ~"0.8rem";
 }
-.xnote-diagram-tools button,
-.xnote-diagram-dialog button {
+.xnote-diagram-tools button {
   border: ~"1px solid var(--border-bold)";
   background: ~"var(--bg-secondary)";
   color: ~"var(--text-normal)";
@@ -2510,106 +2509,9 @@ body[for="html-export"] .markdown-preview:not(:where(.mermaid *, .crossnote-pseu
   padding: ~"0.25em 0.65em";
   cursor: ~"pointer";
 }
-.xnote-diagram-tools button:focus-visible,
-.xnote-diagram-dialog button:focus-visible {
+.xnote-diagram-tools button:focus-visible {
   outline: ~"2px solid var(--text-normal)";
   outline-offset: ~"2px";
-}
-.xnote-diagram-dialog {
-  position: ~"fixed";
-  inset: ~"0";
-  margin: ~"auto";
-  width: ~"94vw";
-  max-width: ~"none";
-  height: ~"90vh";
-  max-height: ~"none";
-  box-sizing: ~"border-box";
-  background: ~"var(--bg-primary)";
-  color: ~"var(--text-normal)";
-  border: ~"1px solid var(--border-bold)";
-  border-radius: ~"8px";
-  padding: ~"12px";
-  overflow: ~"hidden";
-}
-.xnote-diagram-dialog[open] {
-  display: ~"grid";
-  grid-template-rows: ~"auto auto minmax(0, 1fr) auto";
-  gap: ~"8px";
-}
-.xnote-diagram-dialog::backdrop {
-  background: ~"#0008";
-}
-.xnote-diagram-dialog .xnote-diagram-controls,
-.xnote-diagram-dialog .xnote-diagram-selection-tools {
-  display: ~"flex";
-  flex-wrap: ~"wrap";
-  gap: ~"8px";
-  align-items: ~"center";
-  min-width: ~"0";
-}
-.xnote-diagram-dialog .xnote-diagram-controls[hidden],
-.xnote-diagram-dialog .xnote-diagram-selection-tools[hidden] {
-  display: ~"none";
-}
-.xnote-diagram-dialog [data-view="close"] {
-  margin-left: ~"auto";
-}
-.xnote-diagram-dialog .xnote-diagram-scale {
-  min-width: ~"4.5em";
-  text-align: ~"center";
-  font-variant-numeric: ~"tabular-nums";
-}
-.xnote-diagram-dialog .xnote-diagram-hint {
-  font-size: ~"0.85rem";
-  color: ~"var(--text-muted)";
-}
-.xnote-diagram-dialog .xnote-diagram-viewport {
-  position: ~"relative";
-  min-height: ~"0";
-  overflow: ~"clip";
-  overscroll-behavior: ~"contain";
-  user-select: ~"none";
-  cursor: ~"grab";
-  border-radius: ~"4px";
-  background: ~"var(--bg-secondary)";
-}
-.xnote-diagram-dialog .xnote-diagram-viewport:focus-visible {
-  outline: ~"2px solid var(--text-muted)";
-  outline-offset: ~"-2px";
-}
-.xnote-diagram-dialog .xnote-diagram-viewport.dragging {
-  cursor: ~"grabbing";
-}
-.xnote-diagram-dialog .xnote-diagram-scene {
-  position: ~"absolute";
-  top: ~"0";
-  left: ~"0";
-  transform-origin: ~"0 0";
-  will-change: ~"transform";
-}
-.xnote-diagram-dialog .xnote-diagram-scene > svg {
-  display: ~"block";
-  max-width: ~"none";
-}
-.xnote-diagram-dialog .xnote-diagram-scene [data-xnote-pick]:focus-visible {
-  outline: ~"2px solid var(--text-normal)";
-}
-.xnote-diagram-dialog .xnote-diagram-selection {
-  position: ~"absolute";
-  top: ~"0";
-  left: ~"0";
-  box-sizing: ~"border-box";
-  border: ~"2px solid var(--text-normal)";
-  border-radius: ~"5px";
-  box-shadow: ~"0 0 0 1px var(--bg-primary)";
-  pointer-events: ~"none";
-}
-.xnote-diagram-dialog .xnote-diagram-selection-tools [role="status"] {
-  flex: ~"1";
-  min-width: ~"8em";
-  overflow: ~"hidden";
-  text-overflow: ~"ellipsis";
-  white-space: ~"nowrap";
 }
 .xnote-diagram-status {
   font-size: ~"0.85rem";

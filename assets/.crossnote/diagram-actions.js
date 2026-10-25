@@ -508,6 +508,21 @@
     // Included inside diagram-actions' closure; the host still loads one lazy module.
 var viewerSequence = 0;
 var closeViewer = null;
+var viewerCSS = ".xnote-diagram-dialog[data-xnote-viewer] {\n  font: inherit;\n  text-align: left;\n  position: fixed;\n  inset: 0;\n  margin: auto;\n  width: 94vw;\n  max-width: none;\n  height: 90vh;\n  max-height: none;\n  box-sizing: border-box;\n  background: var(--bg-primary);\n  color: var(--text-normal);\n  border: 1px solid var(--border-bold);\n  border-radius: 8px;\n  padding: 12px;\n  overflow: hidden;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button {\n  font: inherit;\n  border: 1px solid var(--border-bold);\n  background: var(--bg-secondary);\n  color: var(--text-normal);\n  border-radius: 4px;\n  padding: 0.25em 0.65em;\n  cursor: pointer;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button:disabled {\n  opacity: 0.45;\n  cursor: default;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button:focus-visible {\n  outline: 2px solid var(--color-blue, #397bb7);\n  outline-offset: 2px;\n}\n.xnote-diagram-dialog[data-xnote-viewer][open] {\n  display: grid;\n  grid-template-rows: auto auto minmax(0, 1fr) auto;\n  gap: 8px;\n}\n.xnote-diagram-dialog[data-xnote-viewer]::backdrop {\n  background: #0008;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-controls,\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 8px;\n  align-items: center;\n  min-width: 0;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-controls[hidden],\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools[hidden] {\n  display: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] [data-view=\"close\"] {\n  margin-left: auto;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scale {\n  min-width: 4.5em;\n  text-align: center;\n  font-variant-numeric: tabular-nums;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-hint {\n  font-size: 0.85rem;\n  color: var(--text-muted);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport {\n  position: relative;\n  height: auto;\n  margin: 0;\n  min-width: 0;\n  min-height: 0;\n  overflow: clip;\n  overscroll-behavior: contain;\n  user-select: none;\n  cursor: grab;\n  border-radius: 4px;\n  background: var(--bg-secondary);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport:focus-visible {\n  outline: 2px solid var(--text-muted);\n  outline-offset: -2px;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport.dragging {\n  cursor: grabbing;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene {\n  position: absolute;\n  top: 0;\n  left: 0;\n  transform-origin: 0 0;\n  will-change: transform;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene > svg {\n  display: block;\n  max-width: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene [data-xnote-pick]:focus-visible {\n  outline: 2px solid var(--text-normal);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection {\n  position: absolute;\n  top: 0;\n  left: 0;\n  box-sizing: border-box;\n  border: 2px solid var(--color-blue, #397bb7);\n  background: color-mix(in srgb, var(--color-blue, #397bb7) 10%, transparent);\n  border-radius: 5px;\n  box-shadow: 0 0 0 1px var(--bg-primary);\n  pointer-events: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools {\n  min-height: 2.2em;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools [role=\"status\"] {\n  flex: 1;\n  min-width: 8em;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n@media print {\n  .xnote-diagram-dialog[data-xnote-viewer] {\n    display: none !important;\n  }\n}\n";
+
+function selectableNodes(svg) {
+    var selectors = {
+        "flowchart-v2": "g.node",
+        flowchart: "g.node",
+        stateDiagram: "g.node, g.statediagram-cluster",
+        class: "g.node, g.classGroup",
+        classDiagram: "g.node, g.classGroup",
+        er: "g.node, g.entityBox",
+        sequence: "g:has(> rect.actor), g:has(> text.actor)",
+    };
+    var selector = selectors[svg.getAttribute("aria-roledescription")];
+    return selector ? Array.from(svg.querySelectorAll(selector)) : [];
+}
 
 function viewerSvg(result) {
     var parsed = new DOMParser().parseFromString(result.svg, "image/svg+xml");
@@ -571,6 +586,11 @@ function openViewer(result, returnFocus) {
     var dialog = document.createElement("dialog");
     // MPE's CSS zoom synchronizer recognizes .fixed elements.
     dialog.className = "xnote-diagram-dialog fixed";
+    dialog.dataset.xnoteViewer = "";
+    // Load geometry with its controller, not with MPE's independently cached
+    // document stylesheet. The extra scope also overrides legacy viewer rules.
+    var viewerStyle = document.createElement("style");
+    viewerStyle.textContent = viewerCSS;
     dialog.setAttribute("aria-label", "图表查看器");
     dialog.innerHTML =
         '<div class="xnote-diagram-controls"><button type="button" data-view="out" aria-label="缩小">−</button><output class="xnote-diagram-scale" aria-label="缩放比例"></output><button type="button" data-view="in" aria-label="放大">+</button><button type="button" data-view="fit">全图</button><button type="button" data-view="actual">100%</button><button type="button" data-view="close">关闭</button></div>' +
@@ -594,14 +614,12 @@ function openViewer(result, returnFocus) {
     var drag = null,
         space = false,
         physicalControl = false,
-        wheel = null;
+        wheel = null,
+        suppressClick = false;
     var selected = null,
         selectionBounds = null;
     var abort = new AbortController();
-    var nodes =
-        svg.getAttribute("aria-roledescription") === "flowchart-v2"
-            ? Array.from(svg.querySelectorAll("g.node"))
-            : [];
+    var nodes = selectableNodes(svg);
     var labels = new Map();
     nodes.forEach(function (node, index) {
         var label = node.querySelector(".nodeLabel") || node;
@@ -618,6 +636,12 @@ function openViewer(result, returnFocus) {
     });
     if (nodes.length)
         dialog.querySelector(".xnote-diagram-hint").append(" · 单击节点高亮");
+    // Keep this row present: selecting a node must not resize/re-fit the canvas.
+    selectionTools.hidden = !nodes.length;
+    selectionLabel.textContent = "未选中节点";
+    selectionTools.querySelectorAll("button").forEach(function (button) {
+        button.disabled = true;
+    });
     function on(target, type, handler, options) {
         target.addEventListener(
             type,
@@ -637,15 +661,6 @@ function openViewer(result, returnFocus) {
     }
     function boundedScale(k) {
         return Math.max(Math.min(0.1, fitScale() / 4), Math.min(8, k));
-    }
-    function clampAxis(value, size, content) {
-        return content <= size - 48
-            ? (size - content) / 2
-            : Math.min(24, Math.max(size - content - 24, value));
-    }
-    function constrain() {
-        state.x = clampAxis(state.x, width, result.width * state.k);
-        state.y = clampAxis(state.y, height, result.height * state.k);
     }
     function paint() {
         frame = 0;
@@ -699,14 +714,12 @@ function openViewer(result, returnFocus) {
         state.y = point.y - (point.y - state.y) * ratio;
         state.k = k;
         state.mode = "manual";
-        constrain();
         schedule();
     }
     function pan(dx, dy) {
         state.x += dx;
         state.y += dy;
         state.mode = "manual";
-        constrain();
         schedule();
     }
     function local(event) {
@@ -736,7 +749,6 @@ function openViewer(result, returnFocus) {
             state.k = boundedScale(state.k);
             state.x = width / 2 - q.x * state.k;
             state.y = height / 2 - q.y * state.k;
-            constrain();
             schedule();
         }
     }
@@ -780,8 +792,10 @@ function openViewer(result, returnFocus) {
                 item.setAttribute("tabindex", item === node ? "0" : "-1");
             });
             selectionLabel.textContent = labels.get(node);
-        } else selectionLabel.textContent = "";
-        selectionTools.hidden = !node;
+        } else selectionLabel.textContent = "未选中节点";
+        selectionTools.querySelectorAll("button").forEach(function (button) {
+            button.disabled = !node;
+        });
         schedule();
     }
     function focusSelection() {
@@ -797,7 +811,6 @@ function openViewer(result, returnFocus) {
         state.x = width / 2 - (b.x + b.width / 2) * state.k;
         state.y = height / 2 - (b.y + b.height / 2) * state.k;
         state.mode = "manual";
-        constrain();
         schedule();
     }
     function endDrag() {
@@ -879,6 +892,7 @@ function openViewer(result, returnFocus) {
         )
             return;
         event.preventDefault();
+        suppressClick = false;
         wheel = null;
         viewport.focus({ preventScroll: true });
         drag = {
@@ -921,13 +935,16 @@ function openViewer(result, returnFocus) {
                 ) < 4,
             node = drag.candidate;
         endDrag();
+        suppressClick = true;
         if (click) select(node);
     });
     on(viewport, "pointercancel", endDrag);
     on(viewport, "lostpointercapture", endDrag);
     on(viewport, "click", function (event) {
-        if (event.detail === 0 && pick(event.target))
-            select(pick(event.target));
+        // Trackpad/accessibility click-only activation has no pointer candidate.
+        // Pointer capture may retarget a drag's click to the viewport: ignore it.
+        if (event.detail === 0 || !suppressClick) select(pick(event.target));
+        suppressClick = false;
     });
     on(viewport, "focusin", function (event) {
         var node = pick(event.target);
@@ -953,15 +970,12 @@ function openViewer(result, returnFocus) {
         "keydown",
         function (event) {
             if (event.key === "Control") physicalControl = true;
-            if (!dialog.contains(event.target)) return;
-            if (event.key === "Escape") {
+            if (event.key === "Escape" && dialog.open) {
                 consume(event);
-                if (selected) {
-                    select(null);
-                    viewport.focus({ preventScroll: true });
-                } else dialog.close();
+                dialog.close();
                 return;
             }
+            if (!dialog.contains(event.target)) return;
             if (event.ctrlKey || event.metaKey || event.altKey) return;
             var node = pick(event.target);
             if (
@@ -1069,8 +1083,7 @@ function openViewer(result, returnFocus) {
     });
     on(dialog, "cancel", function (event) {
         event.preventDefault();
-        if (selected) select(null);
-        else dialog.close();
+        dialog.close();
     });
     var resizeObserver = new ResizeObserver(resize);
     var removalObserver = new MutationObserver(function () {
@@ -1086,10 +1099,12 @@ function openViewer(result, returnFocus) {
         if (frame) cancelAnimationFrame(frame);
         resetInput();
         dialog.remove();
+        viewerStyle.remove();
         if (closeViewer === dispose) closeViewer = null;
         if (returnFocus.isConnected) returnFocus.focus({ preventScroll: true });
     }
     on(dialog, "close", dispose);
+    document.head.appendChild(viewerStyle);
     document.body.appendChild(dialog);
     closeViewer = dispose;
     dialog.showModal();
