@@ -28,6 +28,11 @@ async function open(page) {
     await page.waitForSelector("dialog[open]");
     await settled(page);
 }
+async function actual(page) {
+    await page.locator('[data-view="zoom-menu"]').click();
+    await page.locator('[data-view="actual"]').click();
+    await settled(page);
+}
 async function pageFor(svg = chart) {
     const page = await browser.newPage({
         viewport: { width: 1100, height: 850 },
@@ -129,7 +134,7 @@ test("continuous pinch preserves the focal point under host CSS zoom and event f
     try {
         await p.evaluate(() => (document.body.style.zoom = "1.25"));
         await settled(p);
-        await p.click('[data-view="actual"]');
+        await actual(p);
         await settled(p);
         const a = await camera(p);
         const anchor = await wheel(p, {
@@ -141,7 +146,7 @@ test("continuous pinch preserves the focal point under host CSS zoom and event f
         closeTo(b.k, 2);
         closeTo(b.x + q.x * b.k, anchor.x);
         closeTo(b.y + q.y * b.k, anchor.y);
-        await p.click('[data-view="actual"]');
+        await actual(p);
         await settled(p);
         await wheel(p, { ctrlKey: true, deltaY: -10 * Math.log(2) }, 10);
         const fragmented = await camera(p);
@@ -158,7 +163,7 @@ test("continuous pinch preserves the focal point under host CSS zoom and event f
 test("plain trackpad wheel always pans both axes and host handling returns after close", async () => {
     const p = await pageFor();
     try {
-        await p.click('[data-view="actual"]');
+        await actual(p);
         await settled(p);
         const a = await camera(p);
         await wheel(p, { deltaX: 37.5, deltaY: 21.25 });
@@ -191,7 +196,7 @@ test("plain trackpad wheel always pans both axes and host handling returns after
         );
         assert.equal(await p.evaluate(() => hostWheels), 1);
         await open(p);
-        await p.click('[data-view="actual"]');
+        await actual(p);
         await settled(p);
         await wheel(p, { ctrlKey: true, deltaY: -10 });
         closeTo((await camera(p)).k, Math.exp(0.1));
@@ -204,7 +209,7 @@ test("plain trackpad wheel always pans both axes and host handling returns after
 test("native momentum retains pan ownership while a new pinch takes over immediately", async () => {
     const p = await pageFor();
     try {
-        await p.click('[data-view="actual"]');
+        await actual(p);
         await settled(p);
         const a = await camera(p);
         await wheel(p, { deltaY: 20 });
@@ -226,7 +231,7 @@ test("native momentum retains pan ownership while a new pinch takes over immedia
 test("legacy engines protect physical-modifier pan tails without delaying synthetic Ctrl pinch", async () => {
     const p = await pageFor();
     try {
-        await p.click('[data-view="actual"]');
+        await actual(p);
         await settled(p);
         await p.evaluate(() => {
             const v = document.querySelector(".xnote-diagram-viewport"),
@@ -272,7 +277,7 @@ test("fit follows resize, manual mode preserves its center, and huge diagrams re
         const b = await camera(p);
         assert.ok(b.k < a.k);
         assert.ok(2000 * b.k <= b.w - 47);
-        await p.click('[data-view="actual"]');
+        await actual(p);
         await settled(p);
         const c = await camera(p);
         await p.setViewportSize({ width: 1000, height: 800 });
@@ -392,9 +397,7 @@ test("cloned SVG references are isolated, keyboard selection works and unsupport
         assert.ok(await n.nth(1).evaluate((e) => e === document.activeElement));
         await p.keyboard.press("Enter");
         assert.equal(await n.nth(1).getAttribute("aria-pressed"), "true");
-        await p.click('[data-view="selection"]');
-        await settled(p);
-        closeTo((await camera(p)).k, 1);
+
         await p.evaluate(() =>
             Object.defineProperty(navigator, "clipboard", {
                 configurable: true,
@@ -423,7 +426,7 @@ test("cloned SVG references are isolated, keyboard selection works and unsupport
 test("blur, pointer cancellation and external removal release navigation ownership", async () => {
     const p = await pageFor();
     try {
-        await p.click('[data-view="actual"]');
+        await actual(p);
         await settled(p);
         const v = p.locator(".xnote-diagram-viewport"),
             r = await v.boundingBox();
@@ -446,11 +449,14 @@ test("blur, pointer cancellation and external removal release navigation ownersh
                 ),
         );
         await p.mouse.up();
-        assert.equal(await p.locator('[aria-pressed="true"]').count(), 0);
+        assert.equal(
+            await p.locator('[data-xnote-pick][aria-pressed="true"]').count(),
+            0,
+        );
         await p.evaluate(() => document.querySelector("dialog").remove());
         await settled(p);
         await open(p);
-        await p.click('[data-view="actual"]');
+        await actual(p);
         await settled(p);
         await wheel(p, { deltaY: -10, ctrlKey: true });
         closeTo((await camera(p)).k, Math.exp(0.1));
@@ -708,40 +714,6 @@ for (const version of ["mermaid11", "mermaid12"])
         }
     });
 
-test("locating a selection always centers it at 100%, independent of its size or prior zoom", async () => {
-    const p = await pageFor();
-    try {
-        const node = p.locator("[data-xnote-pick]").first();
-        await node.click();
-        for (const previous of [0.3, 3]) {
-            await p.click('[data-view="actual"]');
-            await wheel(p, {
-                ctrlKey: true,
-                deltaY: -100 * Math.log(previous),
-            });
-            await p.click('[data-view="selection"]');
-            await settled(p);
-            closeTo((await camera(p)).k, 1);
-            const offset = await p.evaluate(() => {
-                const n = document
-                        .querySelector('[aria-pressed="true"]')
-                        .getBoundingClientRect(),
-                    v = document
-                        .querySelector(".xnote-diagram-viewport")
-                        .getBoundingClientRect();
-                return {
-                    x: n.x + n.width / 2 - v.x - v.width / 2,
-                    y: n.y + n.height / 2 - v.y - v.height / 2,
-                };
-            });
-            closeTo(offset.x, 0);
-            closeTo(offset.y, 0);
-        }
-    } finally {
-        await p.close();
-    }
-});
-
 test("double-click in the viewer neither zooms nor reaches host source navigation", async () => {
     const p = await pageFor();
     try {
@@ -760,10 +732,7 @@ test("double-click in the viewer neither zooms nor reaches host source navigatio
         assert.deepEqual(await camera(p), before);
         assert.equal(await node.getAttribute("aria-pressed"), "true");
         assert.equal(await p.evaluate(() => hostDoubleClicks), 0);
-        assert.doesNotMatch(
-            await p.locator(".xnote-diagram-hint").textContent(),
-            /双击/,
-        );
+        assert.equal(await p.locator(".xnote-diagram-hint").count(), 0);
     } finally {
         await p.close();
     }
@@ -886,7 +855,7 @@ test("arrow keys move the picture in the arrow direction at every zoom", async (
     const p = await pageFor();
     try {
         for (const zoom of [0.5, 2]) {
-            await p.click('[data-view="actual"]');
+            await actual(p);
             await wheel(p, { ctrlKey: true, deltaY: -100 * Math.log(zoom) });
             await p.locator(".xnote-diagram-viewport").focus();
             for (const [key, dx, dy] of [
@@ -948,7 +917,7 @@ test("minimap is lazy and collapsible, tracks the visible world, and can find an
             await map.locator("image").getAttribute("href"),
             /^data:image\/svg\+xml/,
         );
-        await p.click('[data-view="actual"]');
+        await actual(p);
         await wheel(p, { deltaX: 5000, deltaY: 4000 });
         const c = await camera(p),
             m = await mapGeometry(p),
@@ -1004,7 +973,7 @@ test("minimap is lazy and collapsible, tracks the visible world, and can find an
 test("dragging the minimap viewport preserves the grabbed offset and releases on blur", async () => {
     const p = await pageFor();
     try {
-        await p.click('[data-view="actual"]');
+        await actual(p);
         await p
             .locator('.xnote-diagram-controls [data-view="minimap"]')
             .click();
@@ -1048,6 +1017,130 @@ test("dragging the minimap viewport preserves the grabbed offset and releases on
         await p.mouse.up();
         await settled(p);
         assert.deepEqual(await camera(p), c);
+    } finally {
+        await p.close();
+    }
+});
+
+test("minimal viewer keeps its canvas stable and places the minimap at bottom left", async () => {
+    const p = await pageFor();
+    try {
+        assert.equal(
+            await p
+                .locator('.xnote-diagram-hint,[data-view="selection"]')
+                .count(),
+            0,
+        );
+        assert.equal(
+            await p.locator(".xnote-diagram-selection-tools").isVisible(),
+            false,
+        );
+        assert.doesNotMatch(
+            await p.locator("dialog").textContent(),
+            /未选中节点|定位选中项|双指移动/,
+        );
+        const before = await camera(p);
+        await p.locator("[data-xnote-pick]").first().click();
+        await settled(p);
+        assert.equal(
+            await p.locator(".xnote-diagram-selection-tools").isVisible(),
+            true,
+        );
+        assert.deepEqual(await camera(p), before);
+        await p.click('[data-view="clear"]');
+        assert.equal(
+            await p.locator(".xnote-diagram-selection-tools").isVisible(),
+            false,
+        );
+        await p
+            .locator('.xnote-diagram-controls [data-view="minimap"]')
+            .click();
+        await settled(p);
+        const stage = await p.locator(".xnote-diagram-stage").boundingBox(),
+            map = await p.locator(".xnote-diagram-minimap").boundingBox();
+        closeTo(map.x - stage.x, 12);
+        closeTo(stage.y + stage.height - map.y - map.height, 12);
+    } finally {
+        await p.close();
+    }
+});
+
+test("zoom menu applies presets and typed percentages without changing the focal center", async () => {
+    const p = await pageFor();
+    try {
+        await p.click('[data-view="zoom-menu"]');
+        const input = p.getByRole("textbox", { name: "自定义缩放百分比" });
+        await input.fill("135%");
+        await input.press("Enter");
+        await settled(p);
+        closeTo((await camera(p)).k, 1.35, 0.0001);
+        assert.equal(
+            await p.locator(".xnote-diagram-scale-value").textContent(),
+            "135%",
+        );
+        assert.equal(await p.locator(".xnote-zoom-menu").isVisible(), false);
+        const before = await camera(p);
+        await p.click('[data-view="zoom-menu"]');
+        await p.locator('[data-scale="0.75"]').click();
+        await settled(p);
+        const after = await camera(p);
+        closeTo(after.k, 0.75, 0.0001);
+        closeTo(
+            (after.w / 2 - after.x) / after.k,
+            (before.w / 2 - before.x) / before.k,
+        );
+        closeTo(
+            (after.h / 2 - after.y) / after.k,
+            (before.h / 2 - before.y) / before.k,
+        );
+        await p.click('[data-view="zoom-menu"]');
+        assert.equal(
+            await p.locator('[data-scale="0.75"]').getAttribute("aria-pressed"),
+            "true",
+        );
+        await p.click('[data-view="zoom-fit"]');
+        await settled(p);
+        const fit = await camera(p);
+        await p.setViewportSize({ width: 750, height: 700 });
+        await settled(p);
+        assert.ok((await camera(p)).k < fit.k);
+    } finally {
+        await p.close();
+    }
+});
+
+test("zoom menu validates input, closes on outside click, and Escape dismisses the menu before the viewer", async () => {
+    const p = await pageFor();
+    try {
+        const before = await camera(p);
+        await p.click('[data-view="zoom-menu"]');
+        const input = p.getByRole("textbox", { name: "自定义缩放百分比" });
+        await input.dispatchEvent("wheel", {
+            ctrlKey: true,
+            deltaY: -100,
+            bubbles: true,
+            cancelable: true,
+        });
+        await settled(p);
+        assert.deepEqual(await camera(p), before);
+        await input.fill("garbage");
+        await input.press("Enter");
+        await settled(p);
+        assert.deepEqual(await camera(p), before);
+        assert.equal(await input.evaluate((e) => e.validity.valid), false);
+        await input.fill("0");
+        await input.press("Enter");
+        assert.equal(await input.evaluate((e) => e.validity.valid), false);
+        await input.press("Escape");
+        assert.equal(await p.locator(".xnote-zoom-menu").isVisible(), false);
+        assert.equal(await p.locator("dialog").isVisible(), true);
+        await p.click('[data-view="zoom-menu"]');
+        await p
+            .locator(".xnote-diagram-viewport")
+            .click({ position: { x: 400, y: 400 } });
+        assert.equal(await p.locator(".xnote-zoom-menu").isVisible(), false);
+        await p.keyboard.press("Escape");
+        await p.waitForSelector("dialog", { state: "detached" });
     } finally {
         await p.close();
     }

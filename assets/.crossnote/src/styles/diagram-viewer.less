@@ -1,14 +1,18 @@
 .xnote-diagram-dialog[data-xnote-viewer] {
-    font: inherit;
+    font: 13px/1.4 var(--font-sans, ui-sans-serif, system-ui, sans-serif);
     text-align: left;
     button {
         font: inherit;
-        border: 1px solid var(--border-bold);
-        background: var(--bg-secondary);
+        border: 1px solid transparent;
+        background: transparent;
         color: var(--text-normal);
-        border-radius: 4px;
-        padding: 0.25em 0.65em;
+        border-radius: 6px;
+        padding: 0 9px;
+        height: 30px;
         cursor: pointer;
+        &:hover:not(:disabled) {
+            background: var(--bg-secondary);
+        }
         &:disabled {
             opacity: 0.45;
             cursor: default;
@@ -28,14 +32,14 @@
     box-sizing: border-box;
     background: var(--bg-primary);
     color: var(--text-normal);
-    border: 1px solid var(--border-bold);
+    border: 1px solid var(--border-normal);
     border-radius: 8px;
     padding: 12px;
     overflow: hidden;
     &[open] {
         display: grid;
-        grid-template-rows: auto auto minmax(0, 1fr) auto;
-        gap: 8px;
+        grid-template-rows: auto minmax(0, 1fr);
+        gap: 6px;
     }
     &::backdrop {
         background: #0008;
@@ -53,15 +57,113 @@
     }
     [data-view="close"] {
         margin-left: auto;
+        font-size: 20px;
+        width: 30px;
+        padding: 0;
+    }
+    .xnote-zoom-group {
+        display: flex;
+        align-items: center;
+        position: relative;
+        border: 1px solid var(--border-normal);
+        border-radius: 8px;
+        padding: 2px;
+        gap: 1px;
+        > button[data-view="in"],
+        > button[data-view="out"] {
+            width: 28px;
+            padding: 0;
+            font-size: 18px;
+        }
     }
     .xnote-diagram-scale {
-        min-width: 4.5em;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-width: 76px;
         text-align: center;
         font-variant-numeric: tabular-nums;
+        &[aria-expanded="true"] {
+            background: var(--bg-secondary);
+        }
     }
-    .xnote-diagram-hint {
-        font-size: 0.85rem;
+    .xnote-zoom-chevron {
+        width: 5px;
+        height: 5px;
+        border-right: 1px solid currentColor;
+        border-bottom: 1px solid currentColor;
+        transform: translateY(-2px) rotate(45deg);
+        opacity: 0.65;
+    }
+    .xnote-zoom-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        z-index: 10;
+        width: 210px;
+        max-width: calc(94vw - 48px);
+        max-height: 60vh;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        box-sizing: border-box;
+        padding: 6px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-normal);
+        border-radius: 10px;
+        box-shadow: 0 8px 24px #0003;
+        &[hidden] {
+            display: none;
+        }
+        [aria-pressed="true"] {
+            color: var(--color-blue, #397bb7);
+            background: color-mix(
+                in srgb,
+                var(--color-blue, #397bb7) 10%,
+                transparent
+            );
+            &::after {
+                content: "✓";
+                float: right;
+            }
+        }
+        > button {
+            width: 100%;
+            text-align: left;
+            margin-top: 4px;
+        }
+    }
+    .xnote-zoom-custom {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 2px 8px;
         color: var(--text-muted);
+        input {
+            font: inherit;
+            font-variant-numeric: tabular-nums;
+            color: var(--text-normal);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-normal);
+            border-radius: 5px;
+            padding: 5px 7px;
+            width: 0;
+            min-width: 0;
+            flex: 1;
+            &:focus-visible {
+                outline: 2px solid var(--color-blue, #397bb7);
+                outline-offset: 1px;
+            }
+        }
+    }
+    .xnote-zoom-presets {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 2px;
+        button {
+            text-align: left;
+            font-variant-numeric: tabular-nums;
+        }
     }
     .xnote-diagram-stage {
         position: relative;
@@ -73,7 +175,7 @@
     .xnote-diagram-minimap {
         position: absolute;
         bottom: 12px;
-        right: 12px;
+        left: 12px;
         width: min(220px, 45%);
         box-sizing: border-box;
         padding: 6px;
@@ -179,11 +281,28 @@
         pointer-events: none;
     }
     .xnote-diagram-selection-tools {
-        min-height: 2.2em;
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        max-width: calc(100% - 24px);
+        box-sizing: border-box;
+        flex-wrap: nowrap;
+        padding: 3px 5px 3px 10px;
+        gap: 4px;
+        background: var(--bg-primary);
+        border: 1px solid var(--border-normal);
+        border-radius: 8px;
+        box-shadow: 0 2px 8px #0002;
+        [data-view="clear"] {
+            font-size: 18px;
+            width: 28px;
+            padding: 0;
+        }
     }
     .xnote-diagram-selection-tools [role="status"] {
         flex: 1;
-        min-width: 8em;
+        min-width: 0;
+        max-width: 200px;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;

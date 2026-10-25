@@ -86,17 +86,35 @@ function openViewer(result, returnFocus) {
     viewerStyle.textContent = viewerCSS;
     dialog.setAttribute("aria-label", "图表查看器");
     dialog.innerHTML =
-        '<div class="xnote-diagram-controls"><button type="button" data-view="out" aria-label="缩小">−</button><output class="xnote-diagram-scale" aria-label="缩放比例"></output><button type="button" data-view="in" aria-label="放大">+</button><button type="button" data-view="fit">全图</button><button type="button" data-view="actual">100%</button><button type="button" data-view="minimap" aria-expanded="false">小地图</button><button type="button" data-view="close">关闭</button></div>' +
-        '<div class="xnote-diagram-hint">双指移动 · 捏合缩放 · 拖动平移 · 0 全图</div>' +
-        '<div class="xnote-diagram-stage"><div class="xnote-diagram-viewport" tabindex="0" role="region" aria-label="图表画布，双指移动，捏合缩放；方向键按箭头方向移动图片，加减号缩放，0 查看全图"><div class="xnote-diagram-scene"></div><div class="xnote-diagram-selection" hidden></div></div><aside class="xnote-diagram-minimap" hidden><div class="xnote-diagram-minimap-heading"><span>图表导航</span><button type="button" data-view="minimap" aria-label="收起小地图">×</button></div><svg viewBox="0 0 220 140" width="220" height="140" tabindex="0" role="region" aria-label="小地图：点击定位，拖动视口框导航；方向键按箭头方向移动图片"><image preserveAspectRatio="none"/><rect class="xnote-minimap-image-bounds"/><rect class="xnote-minimap-view"/></svg></aside></div>' +
-        '<div class="xnote-diagram-selection-tools" hidden><span role="status" aria-live="polite"></span><button type="button" data-view="selection">定位选中项</button><button type="button" data-view="copy">复制文字</button><button type="button" data-view="clear">清除选择</button></div>';
+        '<div class="xnote-diagram-controls"><div class="xnote-zoom-group"><button type="button" data-view="out" aria-label="缩小" title="缩小">−</button><button type="button" data-view="zoom-menu" class="xnote-diagram-scale" aria-label="缩放比例" aria-haspopup="dialog" aria-expanded="false"><span class="xnote-diagram-scale-value"></span><span class="xnote-zoom-chevron" aria-hidden="true"></span></button><button type="button" data-view="in" aria-label="放大" title="放大">+</button><div class="xnote-zoom-menu" role="dialog" aria-label="缩放比例" hidden><div class="xnote-zoom-custom"><input type="text" inputmode="decimal" autocomplete="off" spellcheck="false" aria-label="自定义缩放百分比"><span aria-hidden="true">%</span><button type="button" data-view="zoom-apply">应用</button></div><div class="xnote-zoom-presets">' +
+        [25, 50, 75, 100, 125, 150, 200, 400]
+            .map(function (percent) {
+                return (
+                    '<button type="button" data-view="' +
+                    (percent === 100 ? "actual" : "zoom-preset") +
+                    '" data-scale="' +
+                    percent / 100 +
+                    '" aria-pressed="false">' +
+                    percent +
+                    "%</button>"
+                );
+            })
+            .join("") +
+        '</div><button type="button" data-view="zoom-fit" aria-pressed="false">适合窗口</button></div></div><button type="button" data-view="fit" title="适合窗口">全图</button><button type="button" data-view="minimap" aria-expanded="false">小地图</button><button type="button" data-view="close" aria-label="关闭查看器" title="关闭">×</button></div>' +
+        '<div class="xnote-diagram-stage"><div class="xnote-diagram-viewport" tabindex="0" role="region" aria-label="图表画布，双指移动，捏合缩放；方向键按箭头方向移动图片，加减号缩放，0 查看全图"><div class="xnote-diagram-scene"></div><div class="xnote-diagram-selection" hidden></div></div><aside class="xnote-diagram-minimap" hidden><div class="xnote-diagram-minimap-heading"><span>图表导航</span><button type="button" data-view="minimap" aria-label="收起小地图">×</button></div><svg viewBox="0 0 220 140" width="220" height="140" tabindex="0" role="region" aria-label="小地图：点击定位，拖动视口框导航；方向键按箭头方向移动图片"><image preserveAspectRatio="none"/><rect class="xnote-minimap-image-bounds"/><rect class="xnote-minimap-view"/></svg></aside>' +
+        '<div class="xnote-diagram-selection-tools" hidden><span role="status" aria-live="polite"></span><button type="button" data-view="copy" title="复制节点文字">复制</button><button type="button" data-view="clear" aria-label="清除选择" title="清除选择">×</button></div></div>';
     var viewport = dialog.querySelector(".xnote-diagram-viewport");
     // The snapshot already composites the author's actual paper color. Extend
     // that same surface across the canvas instead of showing a second rectangle.
     if (result.paper) viewport.style.backgroundColor = result.paper;
     var scene = dialog.querySelector(".xnote-diagram-scene");
     var outline = dialog.querySelector(".xnote-diagram-selection");
-    var scaleLabel = dialog.querySelector("output");
+    var scaleLabel = dialog.querySelector(".xnote-diagram-scale-value");
+    var zoomToggle = dialog.querySelector('[data-view="zoom-menu"]');
+    var zoomMenu = dialog.querySelector(".xnote-zoom-menu");
+    var zoomInput = zoomMenu.querySelector("input");
+    zoomMenu.id = "xnote-zoom-" + viewerSequence;
+    zoomToggle.setAttribute("aria-controls", zoomMenu.id);
     var minimapPanel = dialog.querySelector(".xnote-diagram-minimap");
     var minimap = minimapPanel.querySelector("svg");
     var minimapImage = minimap.querySelector("image");
@@ -141,14 +159,6 @@ function openViewer(result, returnFocus) {
         node.setAttribute("aria-pressed", "false");
         node.dataset.xnotePick = "";
     });
-    if (nodes.length)
-        dialog.querySelector(".xnote-diagram-hint").append(" · 单击节点高亮");
-    // Keep this row present: selecting a node must not resize/re-fit the canvas.
-    selectionTools.hidden = !nodes.length;
-    selectionLabel.textContent = "未选中节点";
-    selectionTools.querySelectorAll("button").forEach(function (button) {
-        button.disabled = true;
-    });
     function on(target, type, handler, options) {
         target.addEventListener(
             type,
@@ -156,6 +166,44 @@ function openViewer(result, returnFocus) {
             Object.assign({ signal: abort.signal }, options),
         );
     }
+    function closeZoomMenu(restoreFocus) {
+        zoomMenu.hidden = true;
+        zoomToggle.setAttribute("aria-expanded", "false");
+        zoomInput.setCustomValidity("");
+        if (restoreFocus) zoomToggle.focus({ preventScroll: true });
+    }
+    function applyZoomInput() {
+        var value = zoomInput.value.trim();
+        var percent = Number(value.replace(/%$/, "").trim());
+        if (
+            !/^(?:\d+(?:\.\d*)?|\.\d+)\s*%?$/.test(value) ||
+            !Number.isFinite(percent) ||
+            percent <= 0
+        ) {
+            zoomInput.setCustomValidity("请输入大于 0 的缩放百分比");
+            zoomInput.reportValidity();
+            return;
+        }
+        zoomAt(percent / 100, center());
+        closeZoomMenu(false);
+        viewport.focus({ preventScroll: true });
+    }
+    on(zoomInput, "input", function () {
+        zoomInput.setCustomValidity("");
+    });
+    on(
+        window,
+        "pointerdown",
+        function (event) {
+            if (
+                !zoomMenu.hidden &&
+                !zoomMenu.contains(event.target) &&
+                !zoomToggle.contains(event.target)
+            )
+                closeZoomMenu(false);
+        },
+        { capture: true },
+    );
     function fitScale() {
         return Math.max(
             0.000001,
@@ -182,8 +230,32 @@ function openViewer(result, returnFocus) {
             ")";
         var percent = state.k * 100;
         var label =
-            (percent < 10 ? percent.toFixed(1) : Math.round(percent)) + "%";
-        if (scaleLabel.textContent !== label) scaleLabel.textContent = label;
+            (percent < 10 ? Number(percent.toFixed(6)) : Math.round(percent)) +
+            "%";
+        if (scaleLabel.textContent !== label) {
+            scaleLabel.textContent = label;
+            zoomToggle.setAttribute("aria-label", "缩放比例：" + label);
+        }
+        if (document.activeElement !== zoomInput)
+            zoomInput.value = label.replace("%", "");
+        if (!zoomMenu.hidden) {
+            zoomMenu
+                .querySelectorAll("[data-scale]")
+                .forEach(function (button) {
+                    button.setAttribute(
+                        "aria-pressed",
+                        String(
+                            state.mode === "manual" &&
+                                Math.abs(
+                                    state.k - Number(button.dataset.scale),
+                                ) < 0.000001,
+                        ),
+                    );
+                });
+            zoomMenu
+                .querySelector('[data-view="zoom-fit"]')
+                .setAttribute("aria-pressed", String(state.mode === "fit"));
+        }
         if (selectionBounds) {
             outline.hidden = false;
             outline.style.transform =
@@ -433,20 +505,11 @@ function openViewer(result, returnFocus) {
                 item.setAttribute("tabindex", item === node ? "0" : "-1");
             });
             selectionLabel.textContent = labels.get(node);
-        } else selectionLabel.textContent = "未选中节点";
+        } else selectionLabel.textContent = "";
+        selectionTools.hidden = !node;
         selectionTools.querySelectorAll("button").forEach(function (button) {
             button.disabled = !node;
         });
-        schedule();
-    }
-    function focusSelection() {
-        if (!selectionBounds) return;
-        var b = selectionBounds;
-        state.k = 1;
-        wheel = null;
-        state.x = width / 2 - (b.x + b.width / 2) * state.k;
-        state.y = height / 2 - (b.y + b.height / 2) * state.k;
-        state.mode = "manual";
         schedule();
     }
     function endDrag() {
@@ -474,6 +537,10 @@ function openViewer(result, returnFocus) {
         window,
         "wheel",
         function (event) {
+            if (event.composedPath().includes(zoomMenu)) {
+                if (event.ctrlKey || event.metaKey) consume(event);
+                return;
+            }
             if (
                 !event.composedPath().includes(viewport) &&
                 !event.composedPath().includes(minimap)
@@ -628,7 +695,13 @@ function openViewer(result, returnFocus) {
             if (event.key === "Control") physicalControl = true;
             if (event.key === "Escape" && dialog.open) {
                 consume(event);
-                dialog.close();
+                if (!zoomMenu.hidden) closeZoomMenu(true);
+                else dialog.close();
+                return;
+            }
+            if (event.target === zoomInput && event.key === "Enter") {
+                consume(event);
+                applyZoomInput();
                 return;
             }
             if (!dialog.contains(event.target)) return;
@@ -717,7 +790,27 @@ function openViewer(result, returnFocus) {
         if (!button) return;
         var action = button.dataset.view;
         if (action === "close") dialog.close();
-        else if (action === "minimap") {
+        else if (action === "zoom-menu") {
+            if (!zoomMenu.hidden) closeZoomMenu(true);
+            else {
+                zoomMenu.hidden = false;
+                flush();
+                zoomToggle.setAttribute("aria-expanded", "true");
+                zoomInput.value = String(Number((state.k * 100).toFixed(6)));
+                zoomInput.setCustomValidity("");
+                zoomInput.focus({ preventScroll: true });
+                zoomInput.select();
+            }
+        } else if (action === "zoom-apply") applyZoomInput();
+        else if (action === "zoom-preset" || action === "actual") {
+            zoomAt(Number(button.dataset.scale), center());
+            closeZoomMenu(false);
+            viewport.focus({ preventScroll: true });
+        } else if (action === "zoom-fit") {
+            fit();
+            closeZoomMenu(false);
+            viewport.focus({ preventScroll: true });
+        } else if (action === "minimap") {
             endMinimapDrag();
             minimapPanel.hidden = !minimapPanel.hidden;
             minimapToggle.setAttribute(
@@ -733,8 +826,6 @@ function openViewer(result, returnFocus) {
                 minimapToggle.focus({ preventScroll: true });
             schedule();
         } else if (action === "fit") fit();
-        else if (action === "actual") zoomAt(1, center());
-        else if (action === "selection") focusSelection();
         else if (action === "clear") {
             select(null);
             viewport.focus({ preventScroll: true });
@@ -750,7 +841,8 @@ function openViewer(result, returnFocus) {
                     selectionLabel.textContent =
                         "复制不可用，请在原文中复制：" + labels.get(node);
             }
-        } else zoomAt(state.k * (action === "in" ? 1.25 : 0.8), center());
+        } else if (action === "in" || action === "out")
+            zoomAt(state.k * (action === "in" ? 1.25 : 0.8), center());
     });
     on(dialog, "cancel", function (event) {
         event.preventDefault();
