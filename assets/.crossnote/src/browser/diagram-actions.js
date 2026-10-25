@@ -452,6 +452,7 @@
         }
         return {
             svg: new XMLSerializer().serializeToString(clone),
+            paper: paper,
             width: Math.ceil(width),
             height: Math.ceil(height),
         };

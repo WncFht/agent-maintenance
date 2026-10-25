@@ -87,10 +87,13 @@ function openViewer(result, returnFocus) {
     dialog.setAttribute("aria-label", "图表查看器");
     dialog.innerHTML =
         '<div class="xnote-diagram-controls"><button type="button" data-view="out" aria-label="缩小">−</button><output class="xnote-diagram-scale" aria-label="缩放比例"></output><button type="button" data-view="in" aria-label="放大">+</button><button type="button" data-view="fit">全图</button><button type="button" data-view="actual">100%</button><button type="button" data-view="close">关闭</button></div>' +
-        '<div class="xnote-diagram-hint">双指移动 · 捏合缩放 · 拖动平移 · 0 全图</div>' +
+        '<div class="xnote-diagram-hint">双指移动 · 捏合缩放 · 双击放大 · 拖动平移 · 0 全图</div>' +
         '<div class="xnote-diagram-viewport" tabindex="0" role="region" aria-label="图表画布，双指移动，捏合缩放；方向键移动，加减号缩放，0 查看全图"><div class="xnote-diagram-scene"></div><div class="xnote-diagram-selection" hidden></div></div>' +
         '<div class="xnote-diagram-selection-tools" hidden><span role="status" aria-live="polite"></span><button type="button" data-view="selection">定位选中项</button><button type="button" data-view="copy">复制文字</button><button type="button" data-view="clear">清除选择</button></div>';
     var viewport = dialog.querySelector(".xnote-diagram-viewport");
+    // The snapshot already composites the author's actual paper color. Extend
+    // that same surface across the canvas instead of showing a second rectangle.
+    if (result.paper) viewport.style.backgroundColor = result.paper;
     var scene = dialog.querySelector(".xnote-diagram-scene");
     var outline = dialog.querySelector(".xnote-diagram-selection");
     var scaleLabel = dialog.querySelector("output");
@@ -294,13 +297,8 @@ function openViewer(result, returnFocus) {
     function focusSelection() {
         if (!selectionBounds) return;
         var b = selectionBounds;
-        state.k = boundedScale(
-            Math.min(
-                (width - 96) / Math.max(1, b.width),
-                (height - 96) / Math.max(1, b.height),
-                2,
-            ),
-        );
+        state.k = 1;
+        wheel = null;
         state.x = width / 2 - (b.x + b.width / 2) * state.k;
         state.y = height / 2 - (b.y + b.height / 2) * state.k;
         state.mode = "manual";
@@ -400,6 +398,18 @@ function openViewer(result, returnFocus) {
         };
         viewport.setPointerCapture(event.pointerId);
     });
+    on(
+        window,
+        "dblclick",
+        function (event) {
+            if (!event.composedPath().includes(viewport) || event.button !== 0)
+                return;
+            consume(event);
+            wheel = null;
+            zoomAt(state.k * 1.25, local(event));
+        },
+        { capture: true },
+    );
     on(viewport, "pointermove", function (event) {
         if (!drag || drag.id !== event.pointerId) return;
         var distance = Math.hypot(

@@ -453,6 +453,7 @@
         }
         return {
             svg: new XMLSerializer().serializeToString(clone),
+            paper: paper,
             width: Math.ceil(width),
             height: Math.ceil(height),
         };
@@ -508,7 +509,7 @@
     // Included inside diagram-actions' closure; the host still loads one lazy module.
 var viewerSequence = 0;
 var closeViewer = null;
-var viewerCSS = ".xnote-diagram-dialog[data-xnote-viewer] {\n  font: inherit;\n  text-align: left;\n  position: fixed;\n  inset: 0;\n  margin: auto;\n  width: 94vw;\n  max-width: none;\n  height: 90vh;\n  max-height: none;\n  box-sizing: border-box;\n  background: var(--bg-primary);\n  color: var(--text-normal);\n  border: 1px solid var(--border-bold);\n  border-radius: 8px;\n  padding: 12px;\n  overflow: hidden;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button {\n  font: inherit;\n  border: 1px solid var(--border-bold);\n  background: var(--bg-secondary);\n  color: var(--text-normal);\n  border-radius: 4px;\n  padding: 0.25em 0.65em;\n  cursor: pointer;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button:disabled {\n  opacity: 0.45;\n  cursor: default;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button:focus-visible {\n  outline: 2px solid var(--color-blue, #397bb7);\n  outline-offset: 2px;\n}\n.xnote-diagram-dialog[data-xnote-viewer][open] {\n  display: grid;\n  grid-template-rows: auto auto minmax(0, 1fr) auto;\n  gap: 8px;\n}\n.xnote-diagram-dialog[data-xnote-viewer]::backdrop {\n  background: #0008;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-controls,\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 8px;\n  align-items: center;\n  min-width: 0;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-controls[hidden],\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools[hidden] {\n  display: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] [data-view=\"close\"] {\n  margin-left: auto;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scale {\n  min-width: 4.5em;\n  text-align: center;\n  font-variant-numeric: tabular-nums;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-hint {\n  font-size: 0.85rem;\n  color: var(--text-muted);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport {\n  position: relative;\n  height: auto;\n  margin: 0;\n  min-width: 0;\n  min-height: 0;\n  overflow: clip;\n  overscroll-behavior: contain;\n  user-select: none;\n  cursor: grab;\n  border-radius: 4px;\n  background: var(--bg-secondary);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport:focus-visible {\n  outline: 2px solid var(--text-muted);\n  outline-offset: -2px;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport.dragging {\n  cursor: grabbing;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene {\n  position: absolute;\n  top: 0;\n  left: 0;\n  transform-origin: 0 0;\n  will-change: transform;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene > svg {\n  display: block;\n  max-width: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene [data-xnote-pick]:focus-visible {\n  outline: 2px solid var(--text-normal);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection {\n  position: absolute;\n  top: 0;\n  left: 0;\n  box-sizing: border-box;\n  border: 2px solid var(--color-blue, #397bb7);\n  background: color-mix(in srgb, var(--color-blue, #397bb7) 10%, transparent);\n  border-radius: 5px;\n  box-shadow: 0 0 0 1px var(--bg-primary);\n  pointer-events: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools {\n  min-height: 2.2em;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools [role=\"status\"] {\n  flex: 1;\n  min-width: 8em;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n@media print {\n  .xnote-diagram-dialog[data-xnote-viewer] {\n    display: none !important;\n  }\n}\n";
+var viewerCSS = ".xnote-diagram-dialog[data-xnote-viewer] {\n  font: inherit;\n  text-align: left;\n  position: fixed;\n  inset: 0;\n  margin: auto;\n  width: 94vw;\n  max-width: none;\n  height: 90vh;\n  max-height: none;\n  box-sizing: border-box;\n  background: var(--bg-primary);\n  color: var(--text-normal);\n  border: 1px solid var(--border-bold);\n  border-radius: 8px;\n  padding: 12px;\n  overflow: hidden;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button {\n  font: inherit;\n  border: 1px solid var(--border-bold);\n  background: var(--bg-secondary);\n  color: var(--text-normal);\n  border-radius: 4px;\n  padding: 0.25em 0.65em;\n  cursor: pointer;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button:disabled {\n  opacity: 0.45;\n  cursor: default;\n}\n.xnote-diagram-dialog[data-xnote-viewer] button:focus-visible {\n  outline: 2px solid var(--color-blue, #397bb7);\n  outline-offset: 2px;\n}\n.xnote-diagram-dialog[data-xnote-viewer][open] {\n  display: grid;\n  grid-template-rows: auto auto minmax(0, 1fr) auto;\n  gap: 8px;\n}\n.xnote-diagram-dialog[data-xnote-viewer]::backdrop {\n  background: #0008;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-controls,\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools {\n  display: flex;\n  flex-wrap: wrap;\n  gap: 8px;\n  align-items: center;\n  min-width: 0;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-controls[hidden],\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools[hidden] {\n  display: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] [data-view=\"close\"] {\n  margin-left: auto;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scale {\n  min-width: 4.5em;\n  text-align: center;\n  font-variant-numeric: tabular-nums;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-hint {\n  font-size: 0.85rem;\n  color: var(--text-muted);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport {\n  position: relative;\n  height: auto;\n  margin: 0;\n  min-width: 0;\n  min-height: 0;\n  overflow: clip;\n  overscroll-behavior: contain;\n  user-select: none;\n  cursor: grab;\n  border-radius: 4px;\n  background: var(--bg-primary);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport:focus-visible {\n  outline: 2px solid var(--text-muted);\n  outline-offset: -2px;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-viewport.dragging {\n  cursor: grabbing;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene {\n  position: absolute;\n  top: 0;\n  left: 0;\n  transform-origin: 0 0;\n  will-change: transform;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene > svg {\n  display: block;\n  max-width: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-scene [data-xnote-pick]:focus-visible {\n  outline: 2px solid var(--text-normal);\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection {\n  position: absolute;\n  top: 0;\n  left: 0;\n  box-sizing: border-box;\n  border: 2px solid var(--color-blue, #397bb7);\n  background: color-mix(in srgb, var(--color-blue, #397bb7) 10%, transparent);\n  border-radius: 5px;\n  box-shadow: 0 0 0 1px var(--bg-primary);\n  pointer-events: none;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools {\n  min-height: 2.2em;\n}\n.xnote-diagram-dialog[data-xnote-viewer] .xnote-diagram-selection-tools [role=\"status\"] {\n  flex: 1;\n  min-width: 8em;\n  overflow: hidden;\n  text-overflow: ellipsis;\n  white-space: nowrap;\n}\n@media print {\n  .xnote-diagram-dialog[data-xnote-viewer] {\n    display: none !important;\n  }\n}\n";
 
 function selectableNodes(svg) {
     var selectors = {
@@ -594,10 +595,13 @@ function openViewer(result, returnFocus) {
     dialog.setAttribute("aria-label", "图表查看器");
     dialog.innerHTML =
         '<div class="xnote-diagram-controls"><button type="button" data-view="out" aria-label="缩小">−</button><output class="xnote-diagram-scale" aria-label="缩放比例"></output><button type="button" data-view="in" aria-label="放大">+</button><button type="button" data-view="fit">全图</button><button type="button" data-view="actual">100%</button><button type="button" data-view="close">关闭</button></div>' +
-        '<div class="xnote-diagram-hint">双指移动 · 捏合缩放 · 拖动平移 · 0 全图</div>' +
+        '<div class="xnote-diagram-hint">双指移动 · 捏合缩放 · 双击放大 · 拖动平移 · 0 全图</div>' +
         '<div class="xnote-diagram-viewport" tabindex="0" role="region" aria-label="图表画布，双指移动，捏合缩放；方向键移动，加减号缩放，0 查看全图"><div class="xnote-diagram-scene"></div><div class="xnote-diagram-selection" hidden></div></div>' +
         '<div class="xnote-diagram-selection-tools" hidden><span role="status" aria-live="polite"></span><button type="button" data-view="selection">定位选中项</button><button type="button" data-view="copy">复制文字</button><button type="button" data-view="clear">清除选择</button></div>';
     var viewport = dialog.querySelector(".xnote-diagram-viewport");
+    // The snapshot already composites the author's actual paper color. Extend
+    // that same surface across the canvas instead of showing a second rectangle.
+    if (result.paper) viewport.style.backgroundColor = result.paper;
     var scene = dialog.querySelector(".xnote-diagram-scene");
     var outline = dialog.querySelector(".xnote-diagram-selection");
     var scaleLabel = dialog.querySelector("output");
@@ -801,13 +805,8 @@ function openViewer(result, returnFocus) {
     function focusSelection() {
         if (!selectionBounds) return;
         var b = selectionBounds;
-        state.k = boundedScale(
-            Math.min(
-                (width - 96) / Math.max(1, b.width),
-                (height - 96) / Math.max(1, b.height),
-                2,
-            ),
-        );
+        state.k = 1;
+        wheel = null;
         state.x = width / 2 - (b.x + b.width / 2) * state.k;
         state.y = height / 2 - (b.y + b.height / 2) * state.k;
         state.mode = "manual";
@@ -907,6 +906,18 @@ function openViewer(result, returnFocus) {
         };
         viewport.setPointerCapture(event.pointerId);
     });
+    on(
+        window,
+        "dblclick",
+        function (event) {
+            if (!event.composedPath().includes(viewport) || event.button !== 0)
+                return;
+            consume(event);
+            wheel = null;
+            zoomAt(state.k * 1.25, local(event));
+        },
+        { capture: true },
+    );
     on(viewport, "pointermove", function (event) {
         if (!drag || drag.id !== event.pointerId) return;
         var distance = Math.hypot(

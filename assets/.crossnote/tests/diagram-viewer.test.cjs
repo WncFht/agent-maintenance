@@ -394,7 +394,7 @@ test("cloned SVG references are isolated, keyboard selection works and unsupport
         assert.equal(await n.nth(1).getAttribute("aria-pressed"), "true");
         await p.click('[data-view="selection"]');
         await settled(p);
-        assert.ok((await camera(p)).k > 1);
+        closeTo((await camera(p)).k, 1);
         await p.evaluate(() =>
             Object.defineProperty(navigator, "clipboard", {
                 configurable: true,
@@ -707,3 +707,138 @@ for (const version of ["mermaid11", "mermaid12"])
             await p.close();
         }
     });
+
+test("locating a selection always centers it at 100%, independent of its size or prior zoom", async () => {
+    const p = await pageFor();
+    try {
+        const node = p.locator("[data-xnote-pick]").first();
+        await node.click();
+        for (const previous of [0.3, 3]) {
+            await p.click('[data-view="actual"]');
+            await wheel(p, {
+                ctrlKey: true,
+                deltaY: -100 * Math.log(previous),
+            });
+            await p.click('[data-view="selection"]');
+            await settled(p);
+            closeTo((await camera(p)).k, 1);
+            const offset = await p.evaluate(() => {
+                const n = document
+                        .querySelector('[aria-pressed="true"]')
+                        .getBoundingClientRect(),
+                    v = document
+                        .querySelector(".xnote-diagram-viewport")
+                        .getBoundingClientRect();
+                return {
+                    x: n.x + n.width / 2 - v.x - v.width / 2,
+                    y: n.y + n.height / 2 - v.y - v.height / 2,
+                };
+            });
+            closeTo(offset.x, 0);
+            closeTo(offset.y, 0);
+        }
+    } finally {
+        await p.close();
+    }
+});
+
+test("double-click zooms gently around its pointer and never reaches the host document handler", async () => {
+    const p = await pageFor();
+    try {
+        await p.evaluate(() => {
+            window.hostDoubleClicks = 0;
+            document.addEventListener(
+                "dblclick",
+                () => hostDoubleClicks++,
+                true,
+            );
+        });
+        const node = p.locator("[data-xnote-pick]").first();
+        const a = await camera(p),
+            r = await node.boundingBox(),
+            v = await p.locator(".xnote-diagram-viewport").boundingBox();
+        const x = Math.floor(r.x + r.width / 2),
+            y = Math.floor(r.y + r.height / 2),
+            q = { x: (x - v.x - a.x) / a.k, y: (y - v.y - a.y) / a.k };
+        await p.mouse.dblclick(x, y);
+        await settled(p);
+        const b = await camera(p);
+        closeTo(b.k / a.k, 1.25, 0.0001);
+        closeTo(b.x + q.x * b.k, x - v.x);
+        closeTo(b.y + q.y * b.k, y - v.y);
+        assert.equal(await node.getAttribute("aria-pressed"), "true");
+        assert.equal(await p.evaluate(() => hostDoubleClicks), 0);
+        await p
+            .locator(".xnote-diagram-viewport")
+            .dispatchEvent("dblclick", {
+                clientX: x,
+                clientY: y,
+                button: 0,
+                detail: 2,
+            });
+        await settled(p);
+        closeTo((await camera(p)).k / b.k, 1.25, 0.0001);
+        const before = await camera(p);
+        await p
+            .locator(".xnote-diagram-hint")
+            .dispatchEvent("dblclick", { button: 0, detail: 2 });
+        await settled(p);
+        assert.deepEqual(await camera(p), before);
+        assert.equal(await p.evaluate(() => hostDoubleClicks), 1);
+    } finally {
+        await p.close();
+    }
+});
+
+test("canvas and exported paper share one composited color in light, dark and author-defined backgrounds", async () => {
+    const p = await pageFor();
+    try {
+        await p.click('[data-view="close"]');
+        await p.waitForSelector("dialog", { state: "detached" });
+        for (const theme of ["paper", "onedark", "black", "native"]) {
+            await p.evaluate((theme) => {
+                document.body.dataset.xnoteTheme =
+                    theme === "native" ? "paper" : theme;
+                document.querySelector(".mermaid > svg").style.backgroundColor =
+                    theme === "native" ? "rgb(19, 41, 67)" : "";
+            }, theme);
+            await p.waitForTimeout(300);
+            const source = await p
+                .locator(".mermaid > svg")
+                .evaluate((e) => e.outerHTML);
+            const paper = await p.evaluate(
+                async () =>
+                    (
+                        await __xnoteDiagramTools.snapshot(
+                            document.querySelector(".mermaid > svg"),
+                        )
+                    ).paper,
+            );
+            await open(p);
+            assert.equal(
+                await p
+                    .locator(".xnote-diagram-viewport")
+                    .evaluate((e) => getComputedStyle(e).backgroundColor),
+                paper.replace(/,/g, ", "),
+                theme,
+            );
+            assert.equal(
+                await p
+                    .locator(".xnote-diagram-scene svg > rect")
+                    .first()
+                    .getAttribute("fill"),
+                paper,
+                theme,
+            );
+            assert.equal(
+                await p.locator(".mermaid > svg").evaluate((e) => e.outerHTML),
+                source,
+            );
+            if (theme === "native") assert.equal(paper, "rgb(19,41,67)");
+            await p.keyboard.press("Escape");
+            await p.waitForSelector("dialog", { state: "detached" });
+        }
+    } finally {
+        await p.close();
+    }
+});
