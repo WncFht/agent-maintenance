@@ -15,7 +15,7 @@ flowchart TB
     Package --> Preview["可选 MPE 预览<br/>assets/.crossnote 与资源测试"]
     Rules -->|"合并规则与引用"| Project["目标项目<br/>保留已有构建入口与产品测试"]
     Tools -->|"适配配置、脚本与锁文件"| Project
-    Preview -.->|"选择后建立本机链接"| Project
+    Preview -.->|"显式同步运行副本"| Project
 ```
 
 工具链已验证 Python、Shell、Markdown、YAML、JSON/JSONC、TOML 和 GitHub Actions 的接入。Ruff、Prettier、Taplo 与 shfmt 分别负责对应语法的布局；AutoCorrect 检查正文、代码注释与字符串，自动修复仅用于 Markdown。语义敏感的字符串需审阅并使用有理由的局部豁免，工具职责、扫描范围、版本基线和升级方法见[工具链指南](docs/toolchain.md)。
@@ -77,7 +77,7 @@ flowchart TB
 
 ## 可选 MPE 预览
 
-Markdown Preview Enhanced（MPE）资源归 [assets/.crossnote](assets/.crossnote/README.md)，包含统一主题、五类 Mermaid 着色、图表查看与 SVG／PNG 保存、伪代码渲染和测试。维护 `src/`，构建生成宿主固定文件；目标项目通过显式同步获得独立副本，部署哈希用于识别过期与本地定制。
+Markdown Preview Enhanced（MPE）资源归 [assets/.crossnote](assets/.crossnote/README.md)，包含统一主题、五类 Mermaid 着色、只读图表查看器、SVG／PNG 保存和伪代码渲染。正文单击图表进入自由画布，支持触控板导航、倍率菜单、单选复制和可折叠小地图；当前操作与边界见[查看器说明](assets/.crossnote/README.md#图表查看器)。维护 `src/`，构建生成宿主固定文件；目标项目通过显式同步获得独立副本，部署哈希用于识别过期与本地定制。
 
 ```sh
 npm run build:preview
@@ -87,6 +87,8 @@ node assets/.crossnote/scripts/sync.cjs --target /absolute/project --check
 ```
 
 旧的 `scripts/crossnote-links.sh` 保留为同步兼容入口。脚本权限、浏览器依赖与验证边界见[预览配置](docs/toolchain.md#可选-mpe-预览)，旧部署按[迁移指南](docs/upgrade-guide/unreleased/crossnote/guide.md)切换。
+
+测试范围与目标环境验收见[预览验证](assets/.crossnote/tests/README.md)。调研报告、原型和历史截图由工作区在仓外保存；它们不进入运行载荷，也不替代当前使用说明。
 
 ## 在其他项目采用
 

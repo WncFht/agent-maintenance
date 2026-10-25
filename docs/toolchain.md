@@ -68,6 +68,8 @@ node assets/.crossnote/scripts/sync.cjs --target /absolute/project --check
 
 目标项目忽略根 `.crossnote/`。同步复制运行资源和伪代码检查器，记录文件哈希；不使用源文件链接，也不自动修改全局样式。已知旧副本和指向维护源的链接可迁移，本地定制会阻止写入。旧的 `scripts/crossnote-links.sh` 仍接受 `CROSSNOTE_SRC` 并转交同步工具；常规更新使用上述入口。迁移、冲突及恢复步骤见[升级指南](upgrade-guide/unreleased/crossnote/guide.md)。
 
-浏览器增强使用 MPE 0.8.40／Crossnote 0.9.42 的受信任本地 head 脚本入口；工作区设 `previewTheme: none.css`、`previewColorScheme: systemColorScheme`。启用外观按钮与图表操作时，信任工作区，并在 **VS Code 用户设置**中设 `markdown-preview-enhanced.enablePreviewScripts: true`；该项是 application 作用域，工作区设置无效。无需开启执行任意代码块的 `enableScriptExecution`。同步后重新打开预览，让宿主加载新配置和脚本。
+浏览器增强使用 MPE 0.8.40／Crossnote 0.9.42 的受信任本地 head 脚本入口；工作区设 `previewTheme: none.css`、`previewColorScheme: systemColorScheme`。启用外观按钮与图表操作时，信任工作区，并在 **VS Code 用户设置**中设 `markdown-preview-enhanced.enablePreviewScripts: true`；该项是 application 作用域，工作区设置无效。无需开启执行任意代码块的 `enableScriptExecution`。同步后关闭并重新打开整个 MPE 预览页，让宿主加载新配置和脚本；只关闭图表弹窗不会重新加载资源。
 
 开发依赖锁定了 LESS、CSS 选择器解析器、Playwright、QuickJS、Crossnote 及两套 Mermaid 测试版本；目标工作区不需要这些 npm 包。无本机浏览器时运行 `npx playwright install chromium`，Linux CI 使用 `--with-deps`。运行 `npm run test:preview` 验证生成物、解析器、主题、图表、导出和部署；未运行的编辑器／输出链路须单独说明，不能由邻近测试替代。
+
+同步成功后，可单击一张正文 Mermaid，检查倍率菜单、全图、小地图与 Esc，再保存 SVG／PNG。详细交互验收和 Mac 实机缺口见[预览验证](../assets/.crossnote/tests/README.md)，不以同步文件一致代替实际界面验证。
