@@ -28,7 +28,7 @@ flowchart TB
 | [maintain-prose](.agents/skills/maintain-prose/SKILL.md)                   | 文字与注释的完整语义、会话残留清理     |
 | [maintain-decision-notes](.agents/skills/maintain-decision-notes/SKILL.md) | 决策记录、取代、合并和冻结历史         |
 
-三个技能共用文档、文字与决策维护参考；研究项目可选用问题主报告和支撑报告模板。文档布局、创建门槛与交付步骤见[开发工作流](docs/workflow.md)，目录入口见[文档导航](docs/README.md)。采用时连同技能引用的文件一起复制。产品代码审阅和业务测试沿用目标项目的规范。
+三个技能共用文档、文字与决策维护参考；研究项目可按需采用简短的实验记录规则；正文结构由实际材料决定。文档布局、创建门槛与交付步骤见[开发工作流](docs/workflow.md)，目录入口见[文档导航](docs/README.md)。采用时连同技能引用的文件一起复制。产品代码审阅和业务测试沿用目标项目的规范。
 
 `AGENTS.md` 与 `.agents/` 为规则事实源。docs、scripts、.github 与 Notes 的分层入口表达不同区域的职责；不预设产品源码或基准目录。采用时只选择目标项目存在的区域，并修复相对链接。
 
@@ -95,7 +95,7 @@ node assets/.crossnote/scripts/sync.cjs --target /absolute/project --check
 给 Agent 的接入提示词（替换两个路径）：
 
 ```text
-参考 <维护包路径> 的 README 和 docs/toolchain.md，为 <目标仓库路径> 接入适用的维护规则与工具链。先读目标现状，按需采用三个技能及其引用、共享参考、模板、Agent Notes 规则和分层 AGENTS.md；在目标 docs/AGENTS.md 明确实际内容归属，在 docs/README.md 建立阅读入口，按需采用问题报告与支撑材料，不做重复检测；按真实语言范围合并 formatter、lint、两阶段 hooks 和 CI，复用已有构建与检查入口。依赖归目标项目与锁文件，不覆盖现有规则，不复制本包的过程记录。需要 MPE 时再采用预览资源与同步入口。保留来源与许可，修复引用，验证正常与违规输入、真实部分暂存和失败传播。仅配置必要 CI，不新增自动发布；完成后说明改动与未验证项。
+参考 <维护包路径> 的 README 和 docs/toolchain.md，为 <目标仓库路径> 接入适用的维护规则与工具链。先读目标现状，按需采用三个技能及其引用、共享参考、模板、Agent Notes 规则和分层 AGENTS.md；在目标 docs/AGENTS.md 明确实际内容归属，在 docs/README.md 建立阅读入口，按需采用实验记录规则和文档检查清单，不做重复检测；按真实语言范围合并 formatter、lint、两阶段 hooks 和 CI，复用已有构建与检查入口。依赖归目标项目与锁文件，不覆盖现有规则，不复制本包的过程记录。需要 MPE 时再采用预览资源与同步入口。保留来源与许可，修复引用，验证正常与违规输入、真实部分暂存和失败传播。仅配置必要 CI，不新增自动发布；完成后说明改动与未验证项。
 ```
 
 先核对目标项目已有规则与工具链，按需复制三个技能及其引用的 references、templates 和 notes 规则；不能只复制单个 SKILL.md。保留许可和来源，按真实目录调整入口。

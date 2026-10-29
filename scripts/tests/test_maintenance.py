@@ -56,10 +56,32 @@ class MaintenanceTests(unittest.TestCase):
     def test_format_and_negative_control(self):
         path = self.note()
         self.assertEqual(self.call("notes_guard.py", "--root", self.root).returncode, 0)
-        path.write_text(path.read_text().replace("## 决策", "## 提案"))
+        path.write_text(
+            path.read_text().replace("Status: implemented", "Status: proposed")
+        )
         self.assertNotEqual(
             self.call("notes_guard.py", "--root", self.root).returncode, 0
         )
+
+    def test_freeform_body_and_empty_negative_control(self):
+        for state in ("proposed", "implemented", "rejected"):
+            with self.subTest(state=state):
+                path = self.note(state)
+                status = state + (" — 成本过高" if state == "rejected" else "")
+                header = f"# Agent Note: 资源归属\n\nStatus: {status}\n\n"
+                for body in (
+                    "选择单一所有者，避免释放顺序不明。\n",
+                    "## Evidence\n\nVerified locally.\n## 计划\n\n保留相关背景。\n",
+                ):
+                    path.write_text(header + body)
+                    self.assertEqual(
+                        self.call("notes_guard.py", "--root", self.root).returncode, 0
+                    )
+                path.write_text(header + " \n")
+                self.assertNotEqual(
+                    self.call("notes_guard.py", "--root", self.root).returncode, 0
+                )
+                path.unlink()
 
     def test_empty_target_is_not_success(self):
         missing = self.root / "missing"

@@ -78,24 +78,8 @@ def check_note(path: Path, state: str, errors: list[str]) -> None:
         return
     if lines[3] != "":
         errors.append(label + "：状态后应为空行")
-    heads = [line[3:] for line in lines if line.startswith("## ")]
-    required = {
-        "proposed": ["问题", "提案", "考虑过的替代方案", "验收条件", "风险"],
-        "implemented": ["问题", "决策", "考虑过的替代方案", "后果"],
-        "rejected": ["问题", "提案", "考虑过的替代方案"],
-    }[state]
-    if not heads or heads[0] != "问题":
-        errors.append(label + "：正文首节必须为问题")
-    positions = []
-    for heading in required:
-        if heads.count(heading) != 1:
-            errors.append(label + "：必须有且仅有一个章节：" + heading)
-        else:
-            positions.append(heads.index(heading))
-    if positions != sorted(positions):
-        errors.append(label + "：必需章节顺序错误")
-    if state == "implemented" and set(heads) & {"提案", "计划", "迁移计划", "验收条件"}:
-        errors.append(label + "：已实施记录包含过期计划章节")
+    if not any(line.strip() for line in lines[4:]):
+        errors.append(label + "：记录正文不能为空")
 
 
 def run(root: Path, base: str | None, seal: bool) -> list[str]:
